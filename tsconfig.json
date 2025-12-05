@@ -28,7 +28,9 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
+    "jest.config.ts",
+    "jest.setup.ts",
     "**/*.mts"
-, "app/ui/button.tsx", "app/ui/login-form.tsx", "app/ui/sci-logo.jsx"  ],
+, "app/ui/button.tsx", "app/ui/login-form.tsx", "app/ui/sci-logo.jsx", "__tests__/actions.test.ts", "next.config.ts"  ],
   "exclude": ["node_modules"]
 }

@@ -8,7 +8,7 @@ export type User = {
   revenu: number;
   role: "administrateur" | "locataire" | "locataire potentiel";
   disabled?: boolean;
-  idBienAssocie?: string;
+  idBienAssocie?: string | null;
   documents?: string[];
   createdAt?: string;
   updatedAt?: string;
@@ -16,11 +16,12 @@ export type User = {
 
 export type Estate = {
   id: string;
+  titre: string;
   adresse: string;
   type: "appartement" | "maison" | "bureau";
   loyerMensuel: number;
   rooms: number;
-  available: boolean;
+  status: "disponible" | "loué" | "reservé";
   area: number;
   idGestionnaireAssigne?: string;
   images?: string[];

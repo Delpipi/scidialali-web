@@ -4,6 +4,7 @@ import {
   UserGroupIcon,
   HomeIcon,
   DocumentDuplicateIcon,
+  BuildingOffice2Icon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -17,6 +18,11 @@ const links = [
     name: "Utilisateurs",
     href: "/dashboard/users",
     icon: UserGroupIcon,
+  },
+  {
+    name: "Biens Immobiliers",
+    href: "/dashboard/estates",
+    icon: BuildingOffice2Icon,
   },
 ];
 
@@ -34,7 +40,7 @@ export default function NavLinks() {
             className={clsx(
               "flex h-12 grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-primary/10 hover:text-primary md:flex-none md:justify-start md:p-xsmall",
               {
-                "bg-primary/10 text-primary": pathname === link.href,
+                "bg-primary/10 text-primary ": pathname === link.href,
               }
             )}
           >

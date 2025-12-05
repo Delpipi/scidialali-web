@@ -1,11 +1,16 @@
 import { User } from "./definitions";
 
-export const formatCurrency = (amount: number) => {
-  return (amount / 100).toLocaleString("fr_FR", {
-    style: "currency",
-    currency: "XOF",
-  });
-};
+export function groupByThree(num: number | string): string {
+  return String(num).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+export function getFileName(url: string): string {
+  return url.split("/").pop() || url;
+}
+
+export function getFileExtension(url: string) {
+  getFileName(url).split(".").pop()?.toUpperCase() || "FILE";
+}
 
 export const formatDateToLocal = (dateStr: string, locale: string = "fr") => {
   const date = new Date(dateStr);

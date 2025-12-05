@@ -1,3 +1,4 @@
+import { deleteEstate, deleteUser } from "@/app/lib/actions";
 import { PencilIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 
@@ -26,17 +27,41 @@ export function UpdateUser({ id }: { id: string }) {
 }
 
 export function DeleteUser({ id }: { id: string }) {
+  const deleteUserWithId = deleteUser.bind(null, id);
   return (
-    <>
-      <form>
-        <button
-          type="submit"
-          className="rounded-md border p-2 hover:bg-primary hover:text-white cursor-pointer"
-        >
-          <span className="sr-only">Supprimer</span>
-          <TrashIcon className="w-5" />
-        </button>
-      </form>
-    </>
+    <form action={deleteUserWithId}>
+      <button
+        type="submit"
+        className="rounded-md border p-2 hover:bg-primary hover:text-white cursor-pointer"
+      >
+        <span className="sr-only">Supprimer</span>
+        <TrashIcon className="w-5" />
+      </button>
+    </form>
+  );
+}
+
+export function UpdateEstate({ id }: { id: string }) {
+  return (
+    <Link
+      href={`/dashboard/estates/${id}/edit`}
+      className="rounded-md border p-2 hover:bg-primary hover:text-white"
+    >
+      <PencilIcon className="w-5" />
+    </Link>
+  );
+}
+
+export function DeleteEstate({ id }: { id: string }) {
+  const deleteEstateWithId = deleteEstate.bind(null, id);
+  return (
+    <form action={deleteEstateWithId}>
+      <button
+        type="submit"
+        className="rounded-md border p-2 hover:bg-primary hover:text-white cursor-pointer"
+      >
+        <TrashIcon className="w-5" />
+      </button>
+    </form>
   );
 }
