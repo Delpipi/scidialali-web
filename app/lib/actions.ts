@@ -434,6 +434,7 @@ export async function updateUser(formData: FormData) {
     });
 
     if (!validateFields.success) {
+      console.log(validateFields.error.flatten().fieldErrors);
       return {
         errors: validateFields.error.flatten().fieldErrors,
         message: "Veuillez corriger les erreurs de validation.",
@@ -622,10 +623,12 @@ export async function deleteDocument(
 // Récupérer tous les biens
 export async function getAllBiens(): Promise<Estate[]> {
   try {
+    const session = await requireAuth();
     const response = await fetch(`${API_BASE_URL}/estates`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${session.accessToken}`,
       },
       cache: "no-store",
     });

@@ -52,11 +52,7 @@ const userSchema = z.object({
 
   disabled: z.boolean().default(false),
 
-  idBienAssocie: z
-    .string()
-    .min(1, "L'ID du bien associé est requis")
-    .nullable(),
-
+  idBienAssocie: z.string().optional(),
   documents: z
     .array(z.url("Chaque document doit être une URL valide"))
     .default([]),
