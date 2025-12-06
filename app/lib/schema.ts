@@ -17,9 +17,8 @@ const userSchema = z.object({
 
   password: z
     .string()
-    .min(1, "Le mot de passe est requis")
-    .min(8, "Le mot de passe doit contenir au moins 8 caractères")
-    .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule")
+    .min(6, "Le mot de passe doit contenir au moins 6 caractères") // La longueur minimale est de 6
+    .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule") // Doit contenir au moins une majuscule
     .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre")
     .regex(
       /[^A-Za-z0-9]/,

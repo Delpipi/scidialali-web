@@ -13,9 +13,53 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Estate, User } from "./definitions";
+import { signIn } from "next-auth/react";
+import { requireAuth } from "./auth";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const ITEMS_PER_PAGE = 10;
+
+/***********************************************
+ ************* AUTH *******************
+ ***********************************************/
+
+export async function registerUser(
+  prevState: string | undefined,
+  formData: FormData
+) {
+  try {
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const callbackUrl = formData.get("redirectTo") as string;
+
+    // Validation
+    if (!email || !password) {
+      return "Email et mot de passe requis.";
+    }
+
+    console.log(`EMAIL: ${email}`);
+
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (result?.error) {
+      return "Email ou mot de passe incorrect.";
+    }
+
+    // Redirection en cas de succès
+    if (result?.ok) {
+      redirect(callbackUrl || "/dashboard");
+    }
+
+    return undefined;
+  } catch (error) {
+    console.error("Erreur d'authentification:", error);
+    return "Une erreur est survenue. Veuillez réessayer.";
+  }
+}
 
 /***********************************************
  ************* ESTATE ACTION *******************
@@ -23,10 +67,12 @@ const ITEMS_PER_PAGE = 10;
 
 //============== GET ALL ESTATE ================
 export async function getAllEstates(currentPage: number) {
+  const session = await requireAuth();
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
     const res = await fetch(
-      `${API_BASE_URL}/estates?limit=${ITEMS_PER_PAGE}&offset=${offset}`
+      `${API_BASE_URL}/estates?limit=${ITEMS_PER_PAGE}&offset=${offset}`,
+      { headers: { Authorization: `Bearer ${session.accessToken}` } }
     );
 
     if (!res.ok) {
@@ -46,8 +92,11 @@ export async function getAllEstates(currentPage: number) {
 
 //================ GET USER ===================
 export async function getEstate(id: string) {
+  const session = await requireAuth();
   try {
-    const res = await fetch(`${API_BASE_URL}/estates/${id}`);
+    const res = await fetch(`${API_BASE_URL}/estates/${id}`, {
+      headers: { Authorization: `Bearer ${session.accessToken}` },
+    });
 
     if (!res.ok) {
       const error = (await res.json())["detail"];
@@ -109,12 +158,13 @@ export async function createEstate(
 
   const estateData: EstateCreateData = validateFields.data;
 
-  console.log(`ESTATE DATA ${estateData}`);
+  const session = await requireAuth();
 
   const res = await fetch(`${API_BASE_URL}/estates`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${session.accessToken}`,
     },
     body: JSON.stringify(estateData),
   });
@@ -153,7 +203,6 @@ export async function createEstate(
 
 //============== UPDATE ESTATE ================
 export async function updateEstate(formData: FormData) {
-  console.log("=== START VALIDATION =======");
   try {
     const validateFields = estateSchema.safeParse({
       id: formData.get("id"),
@@ -169,9 +218,6 @@ export async function updateEstate(formData: FormData) {
       documents: JSON.parse(formData.get("documents") as string),
     });
 
-    console.log("=== AFTER VALIDATION =======");
-    console.error(`VALIDATION STATUS:  ${validateFields.success}`);
-
     if (!validateFields.success) {
       console.log("ERRORS STATUS:", validateFields.error.flatten().fieldErrors);
       return {
@@ -180,16 +226,15 @@ export async function updateEstate(formData: FormData) {
       };
     }
 
-    console.log("=== DEBUT ENVOI =======");
-
     const estateData: EstateUpdateData = validateFields.data;
 
-    console.log(`ESTATE DATA ${estateData}`);
+    const session = await requireAuth();
 
     const res = await fetch(`${API_BASE_URL}/estates/${estateData.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${session.accessToken}`,
       },
       body: JSON.stringify(estateData),
     });
@@ -216,9 +261,11 @@ export async function updateEstate(formData: FormData) {
 
 //============== DELETE ESTATE ================
 export async function deleteEstate(id: string) {
+  const session = await requireAuth();
   try {
     const res = await fetch(`${API_BASE_URL}/estates/${id}`, {
       method: "DELETE",
+      headers: { Authorization: `Bearer ${session.accessToken}` },
     });
     if (!res.ok) {
       const error = (await res.json())["detail"];
@@ -238,9 +285,11 @@ export async function deleteEstate(id: string) {
 //=========== GET ALL USER =====================
 export async function getAllUsers(currentPage: number) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  const session = await requireAuth();
   try {
     const res = await fetch(
-      `${API_BASE_URL}/users?limit=${ITEMS_PER_PAGE}&offset=${offset}`
+      `${API_BASE_URL}/users?limit=${ITEMS_PER_PAGE}&offset=${offset}`,
+      { headers: { Authorization: `Bearer ${session.accessToken}` } }
     );
     if (!res.ok) {
       const error = (await res.json())["detail"];
@@ -250,6 +299,30 @@ export async function getAllUsers(currentPage: number) {
     return { sucess: true, users: users };
   } catch (error) {
     console.error("API Error:", error);
+    return {
+      sucess: false,
+      error: "Une erreur c'est produite. Merci de réessayer",
+    };
+  }
+}
+
+//================ GET USER ===================
+export async function getUser(id: string) {
+  const session = await requireAuth();
+  try {
+    const res = await fetch(`${API_BASE_URL}/users/${id}`, {
+      headers: { Authorization: `Bearer ${session.accessToken}` },
+    });
+
+    if (!res.ok) {
+      const error = (await res.json())["detail"];
+      return { sucess: false, error: error };
+    }
+
+    const user = (await res.json()) as User;
+    return { sucess: true, user: user };
+  } catch (error) {
+    console.error("ERREUR GET USER", error);
     return {
       sucess: false,
       error: "Une erreur c'est produite. Merci de réessayer",
@@ -278,7 +351,7 @@ export async function createUser(
   const validateFields = createUserSchema.safeParse({
     nom: formData.get("nom"),
     prenom: formData.get("prenom"),
-    password: formData.get("prenom"),
+    password: formData.get("password"),
     email: formData.get("email"),
     contact: formData.get("contact"),
     profession: formData.get("profession"),
@@ -296,7 +369,9 @@ export async function createUser(
 
   const res = await fetch(`${API_BASE_URL}/auth/signup`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({
       nom: user.nom,
       prenom: user.prenom,
@@ -341,27 +416,6 @@ export async function createUser(
   redirect("/dashboard/users");
 }
 
-//================ GET USER ===================
-export async function getUser(id: string) {
-  try {
-    const res = await fetch(`${API_BASE_URL}/users/${id}`);
-
-    if (!res.ok) {
-      const error = (await res.json())["detail"];
-      return { sucess: false, error: error };
-    }
-
-    const user = (await res.json()) as User;
-    return { sucess: true, user: user };
-  } catch (error) {
-    console.error("ERREUR GET USER", error);
-    return {
-      sucess: false,
-      error: "Une erreur c'est produite. Merci de réessayer",
-    };
-  }
-}
-
 //================ UPDATE USER ===================
 export async function updateUser(formData: FormData) {
   try {
@@ -388,10 +442,13 @@ export async function updateUser(formData: FormData) {
 
     const userData: UpdateUserSchema = validateFields.data;
 
+    const session = await requireAuth();
+
     const res = await fetch(`${API_BASE_URL}/users/${userData.uid}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${session.accessToken}`,
       },
       body: JSON.stringify(userData),
     });
@@ -418,9 +475,11 @@ export async function updateUser(formData: FormData) {
 
 //============== DELETE ESTATE ================
 export async function deleteUser(id: string) {
+  const session = await requireAuth();
   try {
     const res = await fetch(`${API_BASE_URL}/users/${id}`, {
       method: "DELETE",
+      headers: { Authorization: `Bearer ${session.accessToken}` },
     });
     if (!res.ok) {
       const error = (await res.json())["detail"];

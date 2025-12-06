@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Roboto, Montserrat } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
 
 export const roboto = Roboto({
   weight: ["400", "500", "700"], // Regular, Medium, Bold
@@ -38,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${roboto.variable} ${montserrat.variable} antialiased`}>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

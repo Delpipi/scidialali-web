@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import LoginForm from "./ui/login-form";
 import SCIDialaliLogo from "./ui/sci-dialali-logo";
+import Link from "next/link";
 export default function Home() {
   return (
     <div>

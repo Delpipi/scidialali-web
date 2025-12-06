@@ -1,19 +1,17 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: process.env.APIKEY,
-  authDomain: "scidialali-api.firebaseapp.com",
-  projectId: "scidialali-api",
-  storageBucket: "scidialali-api.firebasestorage.app",
-  messagingSenderId: "248401107041",
-  appId: "1:248401107041:web:e4aff3feabcbabd11d3220",
-  measurementId: "G-Y8N5GVJ5PJ",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_WEB_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-let firebase: any;
+const app =
+  getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+export const auth = getAuth(app);
 
-if (!firebase) {
-  firebase = initializeApp(firebaseConfig);
-}
-
-export default firebase;
+export default app;
