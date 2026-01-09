@@ -12,8 +12,7 @@ import {
   UserCircleIcon,
 } from "@heroicons/react/24/outline";
 import { useActionState, useState } from "react";
-import { Button } from "@/app/ui/button";
-import { createUser } from "@/app/lib/actions";
+import { register } from "../lib/actions";
 
 export default function RegistrationForm() {
   const [formValues, setFormValues] = useState({
@@ -26,8 +25,9 @@ export default function RegistrationForm() {
     revenu: "",
   });
 
-  const [state, formAction, isPending] = useActionState(createUser, {
+  const [state, formAction, isPending] = useActionState(register, {
     errors: {},
+    status: "",
     message: "",
   });
 

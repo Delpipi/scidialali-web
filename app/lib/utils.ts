@@ -1,4 +1,9 @@
-import { User } from "./definitions";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export function groupByThree(num: number | string): string {
   return String(num).replace(/\B(?=(\d{3})+(?!\d))/g, " ");

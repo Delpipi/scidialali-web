@@ -1,21 +1,19 @@
 "use client";
 
-import { Estate } from "@/app/lib/definitions";
+import { PublicEstate } from "@/app/lib/definitions";
 import Image from "next/image";
 import { DeleteEstate, UpdateEstate } from "../users/buttons";
 import { groupByThree } from "@/app/lib/utils";
-import {
-  Description,
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-} from "@headlessui/react";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { LinkButton } from "../button";
 
-export default function EStateItem({ estate }: { estate: Estate }) {
+export default function EStateItem({ estate }: { estate: PublicEstate }) {
   let [isOpen, setIsOpen] = useState(false);
+  const { data: session } = useSession();
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition fade-in">
+    <div className="bg-white shadow-md overflow-hidden hover:shadow-xl transition fade-in">
       <Image
         src={estate.images?.[0] || "/no-image.jpg"}
         width={250}
@@ -23,19 +21,28 @@ export default function EStateItem({ estate }: { estate: Estate }) {
         alt={estate.titre}
         className="w-full h-48 object-cover"
       />
-      <div className="p-6">
-        <div className="flex justify-between items-start mb-3">
+      <div className="p-xsmall">
+        <div className="flex justify-between items-start mb-xsmall">
           <h3 className="text-lg font-bold text-gray-800">{estate.titre}</h3>
           <span
-            className={`px-3 py-1 text-xs rounded-full ${
-              estate.status === "disponible"
-                ? "bg-green-100 text-green-800"
-                : estate.status === "loué"
+            className={`px-xsmall py-1 text-xs rounded-full ${
+              estate.status === 1
                 ? "bg-primary/10 text-primary/80"
-                : "bg-orange-100 text-orange-800"
+                : estate.status === 2
+                ? "bg-orange-100 text-orange-800"
+                : "bg-green-100 text-green-800"
             } `}
           >
-            {estate.status}
+            {(() => {
+              switch (estate.status) {
+                case 1:
+                  return "loué";
+                case 2:
+                  return "reservé";
+                default:
+                  return "disponible";
+              }
+            })()}
           </span>
         </div>
         <p className="text-gray-600 text-sm mb-4">
@@ -54,20 +61,20 @@ export default function EStateItem({ estate }: { estate: Estate }) {
           <div className="text-center p-2 bg-gray-50 rounded">
             <i className="fas fa-euro-sign text-primary/60"></i>
             <p className="text-gray-600 mt-1">
-              {groupByThree(estate.loyerMensuel)} FCFA
+              {groupByThree(estate.loyer_mensuel)} FCFA
             </p>
           </div>
         </div>
-        <div className="flex justify-end space-x-2">
-          {/* <button
-            onClick={() => setIsOpen(true)}
-            className="flex-1 bg-primary/80 hover:bg-primary text-white text-sm font-semibold py-2 px-4 rounded-lg transition cursor-pointer"
-          >
-            <i className="fas fa-eye mr-1"></i>Voir
-          </button> */}
-          <UpdateEstate id={estate.id} />
-          <DeleteEstate id={estate.id} />
-        </div>
+        {session && session.user.role === "administrateur" ? (
+          <div className="flex justify-end space-x-2">
+            <UpdateEstate id={estate.id as string} />
+            <DeleteEstate id={estate.id as string} />
+          </div>
+        ) : (
+          <div>
+            <LinkButton className="w-full "> Louer</LinkButton>
+          </div>
+        )}
       </div>
       <Dialog
         open={isOpen}
@@ -95,14 +102,23 @@ export default function EStateItem({ estate }: { estate: Estate }) {
                 </div>
                 <span
                   className={`px-4 py-2 text-sm rounded-full ${
-                    estate.status === "disponible"
-                      ? "bg-green-100 text-green-800"
-                      : estate.status === "loué"
-                      ? "bg-blue-100 text-blue-800"
-                      : "bg-orange-100 text-orange-800"
+                    estate.status === 1
+                      ? "bg-primary/10 text-primary/80"
+                      : estate.status === 2
+                      ? "bg-orange-100 text-orange-800"
+                      : "bg-green-100 text-green-800"
                   }`}
                 >
-                  {estate.status}
+                  {(() => {
+                    switch (estate.status) {
+                      case 1:
+                        return "loué";
+                      case 2:
+                        return "reservé";
+                      default:
+                        return "disponible";
+                    }
+                  })()}
                 </span>
               </div>
 
@@ -121,23 +137,17 @@ export default function EStateItem({ estate }: { estate: Estate }) {
                     {estate.rooms}
                   </p>
                 </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <i className="fas fa-bath text-blue-600 text-3xl mb-2"></i>
-                  <p className="text-gray-600 text-sm">Salle de bain</p>
-                  <p className="font-bold text-gray-800 text-xl">
-                    {estate.rooms}
-                  </p>
-                </div>
+
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                   <i className="fas fa-euro-sign text-blue-600 text-3xl mb-2"></i>
                   <p className="text-gray-600 text-sm">Loyer</p>
                   <p className="font-bold text-gray-800 text-xl">
-                    {estate.loyerMensuel}€
+                    {estate.loyer_mensuel} CFA
                   </p>
                 </div>
               </div>
 
-              <div className="mb-6">
+              {/* <div className="mb-6">
                 <h3 className="text-xl font-bold text-gray-800 mb-3">
                   Équipements
                 </h3>
@@ -159,7 +169,7 @@ export default function EStateItem({ estate }: { estate: Estate }) {
                     <span>Ascenseur</span>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               <div className="flex justify-end">
                 <button

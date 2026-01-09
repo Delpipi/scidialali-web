@@ -6,12 +6,8 @@ export async function getCurrentUser() {
   return session?.user;
 }
 
-export async function requireAuth() {
+export async function getToken() {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
-    throw new Error("Non autorisé");
-  }
-
-  return session;
+  return session?.accessToken;
 }

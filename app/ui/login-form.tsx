@@ -9,7 +9,6 @@ import {
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { ArrowRightIcon } from "@heroicons/react/20/solid";
-import { Button } from "./button";
 import Link from "next/link";
 
 export default function LoginForm() {
@@ -97,10 +96,10 @@ export default function LoginForm() {
             </div>
           </div>
         </div>
-        <Button className="mt-4 w-full cursor-pointer" disabled={loading}>
+        <button className="mt-4 w-full cursor-pointer" disabled={loading}>
           {loading ? "Connexion..." : "Connexion"}{" "}
           <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
-        </Button>
+        </button>
         <div
           className="flex h-8 items-end space-x-1"
           aria-live="polite"
