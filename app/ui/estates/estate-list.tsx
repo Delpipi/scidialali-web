@@ -1,7 +1,10 @@
-import { getAllEstates } from "@/app/lib/actions";
+import { getAllAvailableEstates, getAllEstates } from "@/app/lib/actions";
 import EStateItem from "./estate-item";
+import { auth } from "@/auth";
+import { PublicEstate } from "@/app/lib/definitions";
 
 interface EstateListProps {
+  status?: number;
   type?: string;
   minRent?: number;
   maxRent?: number;
@@ -10,19 +13,32 @@ interface EstateListProps {
 }
 
 export default async function EStatesList({
+  status,
   type,
   minRent,
   maxRent,
   search,
   currentPage,
 }: EstateListProps) {
-  const result = await getAllEstates({
-    status: 0,
-    type: type,
-    currentPage: currentPage,
-  });
+  const session = await auth();
+  let estates: PublicEstate[] = [];
 
-  const estates = result?.data || [];
+  if (!session?.user) {
+    const result = await getAllAvailableEstates({
+      type: type,
+      currentPage: currentPage,
+    });
+    estates = result?.data || [];
+  }
+
+  if (session?.user && session.user.role === "administrateur") {
+    const result = await getAllEstates({
+      status: status,
+      type: type,
+      currentPage: currentPage,
+    });
+    estates = result?.data || [];
+  }
 
   const displayData = estates.filter((estate) => {
     const matchMinRent = minRent

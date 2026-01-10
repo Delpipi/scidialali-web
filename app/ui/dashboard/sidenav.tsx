@@ -1,10 +1,10 @@
-"use client";
 import NavLinks from "@/app/ui/dashboard/nav-links";
+import { auth, signOut } from "@/auth";
 import { PowerIcon } from "@heroicons/react/24/outline";
-import { signOut } from "next-auth/react";
 import Image from "next/image";
 
-export default function SideNav() {
+export default async function SideNav() {
+  const session = await auth();
   return (
     <div className="flex h-full flex-col p-xsmall">
       <div
@@ -21,11 +21,12 @@ export default function SideNav() {
         <h1 className="text-2xl uppercase md:hidden">SCI DIALALI</h1>
       </div>
       <div className="flex grow flex-row justify-between space-x-2 md:flex-col md:space-x-0 md:space-y-2">
-        <NavLinks />
+        <NavLinks user={session?.user} />
         <div className="hidden h-auto w-full grow rounded-md bg-gray-50 md:block"></div>
         <form
           action={async () => {
-            await signOut({ callbackUrl: "/" });
+            "use server";
+            await signOut({ redirectTo: "/" });
           }}
         >
           <button className="flex h-12 w-full grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3">

@@ -2,14 +2,13 @@
 
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { LinkButton } from "./button";
 
-export function HeaderNav() {
-  const { data: session, status } = useSession();
-
+export function HeaderNav({ user }: { user: any }) {
   const getDashboardLink = () => {
-    if (!session?.user) return "/login";
+    if (!user) return "/login";
 
-    switch (session.user.role) {
+    switch (user.role) {
       case "administrateur":
         return "/admin";
       case "locataire":
@@ -21,8 +20,10 @@ export function HeaderNav() {
 
   return (
     <nav className="flex items-center gap-4">
-      {status === "authenticated" ? (
-        <Link href={getDashboardLink()}>Mon espace</Link>
+      {user ? (
+        <LinkButton href={getDashboardLink()} variant="outline">
+          Dashboard
+        </LinkButton>
       ) : (
         <Link href="/login">Connexion</Link>
       )}

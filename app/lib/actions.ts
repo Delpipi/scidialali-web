@@ -14,8 +14,7 @@ import {
 } from "./schema";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { signIn, signOut } from "next-auth/react";
-import { getToken } from "./auth";
+
 import {
   ApiError,
   ApiResponse,
@@ -24,6 +23,9 @@ import {
   PublicUser,
   UploadResponse,
 } from "./definitions";
+import { auth, signIn, signOut } from "@/auth";
+import { AuthError } from "next-auth";
+import { cookies } from "next/headers";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
 const ITEMS_PER_PAGE = 10;
@@ -92,6 +94,10 @@ export type UpdatePasswordState = {
   httpStatus?: number;
 };
 
+export async function handleSignOut() {
+  await signOut({ redirectTo: "/login" });
+}
+
 /**************************************
  ************* API REQUEST ************
  **************************************/
@@ -99,11 +105,13 @@ export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const accessToken = await getToken();
+  const session = await auth();
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
-    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+    ...(session?.accessToken && {
+      Authorization: `Bearer ${session.accessToken}`,
+    }),
     ...options.headers,
   };
 
@@ -115,7 +123,8 @@ export async function apiRequest<T>(
   if (!response.ok) {
     const errorData = await response.json();
     if (response.status == 401) {
-      await signOut({ callbackUrl: "/login" });
+      revalidatePath("/login");
+      redirect("/login");
     }
     throw { detail: errorData.detail, status: response.status } as ApiError;
   }
@@ -128,10 +137,13 @@ async function apiUpload<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const accessToken = await getToken();
+  const session = await auth();
 
   const headers: HeadersInit = {
-    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+    "Content-Type": "application/json",
+    ...(session?.accessToken && {
+      Authorization: `Bearer ${session.accessToken}`,
+    }),
     ...options.headers,
   };
 
@@ -143,7 +155,7 @@ async function apiUpload<T>(
   if (!response.ok) {
     const errorData = await response.json();
     if (response.status == 401) {
-      await signOut({ callbackUrl: "/login" });
+      await signOut({ redirectTo: "/login" });
     }
     throw { detail: errorData.detail, status: response.status } as ApiError;
   }
@@ -173,23 +185,21 @@ export async function authenticate(
     };
   }
 
-  const { contact, password } = validateFields.data;
-
-  const response = await signIn("credentials", {
-    contact,
-    password,
-    redirect: false,
-  });
-
-  if (response?.error) {
-    return {
-      status: "error",
-      message: response.error as string,
-    };
+  try {
+    await signIn("credentials", formData, { redirectTo: "/dashboard" });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case "CredentialsSignin":
+          return { status: "error", message: "Identifiants invalides." };
+        default:
+          return { status: "error", message: "Une erreur est survenue." };
+      }
+    }
+    throw error;
   }
 
-  revalidatePath("/dashboard");
-  redirect("/dashboard");
+  return { status: "success", message: "Connecté !" };
 }
 
 //UPDATE PASSWORD
@@ -293,6 +303,32 @@ export async function register(
  ***********************************************/
 
 //============== GET ALL ESTATE ================
+export async function getAllAvailableEstates({
+  type = "",
+  currentPage = 1,
+} = {}) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  try {
+    const estates = await apiRequest<PublicEstate[]>(
+      `/api/estates/available?type=${type}&limit=${ITEMS_PER_PAGE}&offset=${offset}`,
+      { method: "GET" }
+    );
+
+    return {
+      status: "success",
+      data: estates,
+    };
+  } catch (error) {
+    console.error("ERREUR GET ALL AVAILABLE ESTATE", error);
+    const apiError = error as ApiError;
+    return {
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue.",
+      httpStatus: apiError.status,
+    };
+  }
+}
+
 export async function getAllEstates({
   status = 0,
   type = "",

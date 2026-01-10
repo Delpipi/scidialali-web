@@ -53,7 +53,7 @@ export default function EstateFilters() {
     replace(`${pathname}?${params.toString()}`);
   };
   return (
-    <div className="bg-gray-50 rounded-lg p-xsmall mb-small">
+    <div className="bg-gray-50 rounded-sm p-xsmall mb-small">
       <form
         onSubmit={handleFilter}
         className="flex flex-col md:flex-row justify-evenly gap-xsmall"
@@ -69,7 +69,7 @@ export default function EstateFilters() {
         </select> */}
         <select
           name="type"
-          className="w-full px-4 py-2  border border-gray-300  outline-none"
+          className="w-full px-4 py-2  border border-gray-300  outline-none rounded-sm"
         >
           <option value="">Tous les types</option>
           <option value="appartement">Appartement</option>
@@ -80,7 +80,7 @@ export default function EstateFilters() {
           type="text"
           name="search"
           placeholder="Rechercher..."
-          className="w-full px-4 py-2  border border-gray-300 outline-none"
+          className="w-full px-4 py-2  border border-gray-300 outline-none rounded-sm"
         />
 
         <input
@@ -88,7 +88,7 @@ export default function EstateFilters() {
           name="minRent"
           placeholder="Loyer Min (CFA) Ex: 50000"
           defaultValue={searchParams.get("minRent") || ""}
-          className="w-full px-4 py-2 border border-gray-300 outline-none"
+          className="w-full px-4 py-2 border border-gray-300 outline-none rounded-sm"
         />
 
         <input
@@ -96,12 +96,12 @@ export default function EstateFilters() {
           name="maxRent"
           placeholder="Loyer Max (CFA) Ex: 500000"
           defaultValue={searchParams.get("maxRent") || ""}
-          className="w-full px-4 py-2 border border-gray-300 outline-none"
+          className="w-full px-4 py-2 border border-gray-300 outline-none rounded-sm"
         />
 
         <button
           type="submit"
-          className="bg-primary  text-white font-semibold py-xsmall px-small transition inline-block cursor-pointer"
+          className="bg-primary  text-white font-semibold py-xsmall px-small transition inline-block cursor-pointer rounded-sm"
         >
           <i className="fas fa-search mr-2"></i>Rechercher
         </button>

@@ -20,7 +20,7 @@ export function LinkButton({
   href,
 }: ButtonProps) {
   const commonClasses =
-    "inline-flex items-center justify-center font-semibold transition cursor-pointer";
+    "inline-flex items-center justify-center font-semibold transition cursor-pointer rounded-sm";
 
   const variantClasses = {
     default: "bg-primary text-white hover:bg-primary/90",
@@ -43,9 +43,9 @@ export function LinkButton({
   );
 
   return href ? (
-    <Link href={href}>
-      <a className={buttonClasses}>{children}</a>
-    </Link>
+    <a href={href} className={buttonClasses}>
+      {children}
+    </a>
   ) : (
     <button onClick={onClick} className={buttonClasses}>
       {children}
