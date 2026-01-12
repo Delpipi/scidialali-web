@@ -1,14 +1,15 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
-import { AtSymbolIcon, KeyIcon } from "@heroicons/react/24/outline";
+import { useActionState, useEffect, useState } from "react";
 import { ArrowRightIcon } from "@heroicons/react/20/solid";
 import Link from "next/link";
 import { authenticate } from "../lib/actions";
 import { toast } from "react-hot-toast";
-import { PhoneIcon } from "lucide-react";
+import { KeyIcon, PhoneIcon } from "lucide-react";
 
 export default function LoginForm() {
+  const [formValue, setFormValue] = useState({ contact: "" });
+
   const [state, formAction, isProccessing] = useActionState(authenticate, {
     status: "idle",
     message: "",
@@ -25,6 +26,10 @@ export default function LoginForm() {
     }
   }, [state.message]);
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormValue({ ...formValue, [e.target.name]: e.target.value });
+  };
+
   return (
     <div className="flex-1 rounded-lg bg-gray-50 px-6 pb-4 pt-8">
       <form action={formAction} className="space-y-3">
@@ -35,7 +40,7 @@ export default function LoginForm() {
               className="mb-3 mt-5 block text-xs font-medium text-gray-900"
               htmlFor="email"
             >
-              Email
+              Contact
             </label>
             <div className="relative">
               <input
@@ -44,13 +49,15 @@ export default function LoginForm() {
                 type="contact"
                 name="contact"
                 placeholder="Votre contact: +225XXXXXXX"
+                value={formValue.contact}
+                onChange={handleChange}
                 required
                 disabled={isProccessing}
               />
               <PhoneIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
             </div>
           </div>
-          <div id="nom-error" aria-live="polite" aria-atomic="true">
+          <div id="contact-error" aria-live="polite" aria-atomic="true">
             {state.fieldErrors?.contact &&
               state.fieldErrors.contact.map((error) => (
                 <p className="mt-2 text-sm text-red-500" key={error}>

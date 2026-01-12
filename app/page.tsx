@@ -10,8 +10,8 @@ import { auth } from "@/auth";
 export default async function Home(props: {
   searchParams?: Promise<{
     type?: string;
-    minRent?: number;
-    maxRent?: number;
+    minRent?: string;
+    maxRent?: string;
     search?: string;
     page?: string;
   }>;

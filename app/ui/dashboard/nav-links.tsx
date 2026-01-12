@@ -9,6 +9,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { useSession } from "next-auth/react";
+import { HandshakeIcon } from "lucide-react";
 
 // Map of links to display in the side navigation.
 // Depending on the size of the application, this would be stored in a database.
@@ -20,6 +21,11 @@ const menuAdmin = [
     icon: UserGroupIcon,
   },
   {
+    name: "Demandes",
+    href: "/admin/rental_requests",
+    icon: HandshakeIcon,
+  },
+  {
     name: "Biens Immobiliers",
     href: "/admin/estates",
     icon: BuildingOffice2Icon,
@@ -28,7 +34,6 @@ const menuAdmin = [
 
 export default function NavLinks({ user }: { user: any }) {
   const pathname = usePathname();
-  const { data: session, status } = useSession();
   return (
     <>
       {user &&

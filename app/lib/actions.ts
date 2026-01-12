@@ -12,20 +12,19 @@ import {
   UpdateUserSchema,
   updateUserSchema,
 } from "./schema";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import {
   ApiError,
   ApiResponse,
   DeleteFileResponse,
   PublicEstate,
+  PublicRentalRequest,
   PublicUser,
   UploadResponse,
 } from "./definitions";
 import { auth, signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
-import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
 const ITEMS_PER_PAGE = 10;
@@ -33,6 +32,17 @@ const ITEMS_PER_PAGE = 10;
 /**************************************
  ************* TYPES STATE ************
  **************************************/
+export type AdminStats = {
+  total_users: number;
+  active_tenants: number;
+  available_estates: number;
+  rented_estates: number;
+  pending_requests: number;
+  unread_messages: number;
+  pending_payments: number;
+  late_payments: number;
+};
+
 export type UserState = {
   status: "idle" | "success" | "error";
   message?: string;
@@ -94,8 +104,10 @@ export type UpdatePasswordState = {
   httpStatus?: number;
 };
 
-export async function handleSignOut() {
-  await signOut({ redirectTo: "/login" });
+export async function handleUnauthorized() {
+  // This clears the Auth.js session
+  await signOut({ redirect: false });
+  redirect("/login");
 }
 
 /**************************************
@@ -113,6 +125,7 @@ export async function apiRequest<T>(
       Authorization: `Bearer ${session.accessToken}`,
     }),
     ...options.headers,
+    credentials: "include",
   };
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -122,11 +135,7 @@ export async function apiRequest<T>(
 
   if (!response.ok) {
     const errorData = await response.json();
-    if (response.status == 401) {
-      revalidatePath("/login");
-      redirect("/login");
-    }
-    throw { detail: errorData.detail, status: response.status } as ApiError;
+    throw new ApiError(response.status, errorData.detail);
   }
 
   const data = await response.json();
@@ -154,14 +163,21 @@ async function apiUpload<T>(
 
   if (!response.ok) {
     const errorData = await response.json();
-    if (response.status == 401) {
-      await signOut({ redirectTo: "/login" });
-    }
-    throw { detail: errorData.detail, status: response.status } as ApiError;
+    throw new ApiError(response.status, errorData.detail);
   }
 
   const data = await response.json();
   return data;
+}
+
+/**************************************
+ ************* STATS *******************
+ **************************************/
+export async function getAdminStats() {
+  const result = await apiRequest<AdminStats>("/api/stats/admin", {
+    method: "GET",
+  });
+  return result;
 }
 
 /**************************************
@@ -186,7 +202,11 @@ export async function authenticate(
   }
 
   try {
-    await signIn("credentials", formData, { redirectTo: "/dashboard" });
+    await signIn("credentials", {
+      contact: validateFields.data.contact,
+      password: validateFields.data.password,
+      redirect: false,
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
@@ -732,4 +752,59 @@ export async function deleteDocument(
       httpStatus: apiError.status,
     };
   }
+}
+
+/***********************************************
+ ************* RENTAL REQUEST ACTION ***********
+ ***********************************************/
+
+export async function getAllRentalRequest({
+  status,
+  order_by,
+  currentPage = 1,
+}: {
+  status?: number;
+  order_by: string;
+  currentPage?: number;
+}) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  let url = `/api/rental_requests/?limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`;
+  if (status !== undefined) {
+    url += `&status=${status}`;
+  }
+  const rental_requests = await apiRequest<PublicRentalRequest[]>(url);
+  return rental_requests;
+}
+
+export async function getRentalRequestById(id: string) {
+  const result = await apiRequest<PublicRentalRequest>(
+    `/api/rental_requests/${id}`,
+    {
+      method: "GET",
+    }
+  );
+  return result;
+}
+
+export async function approveRentalRequest(id: string, admin_notes: string) {
+  console.log("+++ STRT ++++");
+  const result = await apiRequest(`/api/rental_requests/${id}/approve`, {
+    method: "PATCH",
+    body: JSON.stringify({ admin_notes: admin_notes }),
+  });
+  return result;
+}
+
+export async function rejectedRentalRequest(id: string) {
+  const message = await apiRequest(`/api/rental_requests/${id}/reject`, {
+    method: "PATCH",
+  });
+  return message;
+}
+
+export async function deleteRentalRequest(id: string) {
+  const message = await apiRequest<void>(`/api/rental_requests/${id}`, {
+    method: "DELETE",
+  });
+  return message;
 }

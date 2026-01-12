@@ -1,5 +1,10 @@
-import { deleteEstate, deleteUser } from "@/app/lib/actions";
+import {
+  deleteEstate,
+  deleteRentalRequest,
+  deleteUser,
+} from "@/app/lib/actions";
 import { PencilIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { EyeIcon } from "lucide-react";
 import Link from "next/link";
 
 export function CreateUser() {
@@ -59,6 +64,31 @@ export function DeleteEstate({ id }: { id: string }) {
       <button
         type="submit"
         className="rounded-md border p-2 hover:bg-primary hover:text-white cursor-pointer"
+      >
+        <TrashIcon className="w-5" />
+      </button>
+    </form>
+  );
+}
+
+export function ViewRentalRequest({ id }: { id: string }) {
+  return (
+    <Link
+      href={`/admin/rental_requests/${id}`}
+      className="rounded-md border p-2.5 hover:bg-primary hover:text-white"
+    >
+      <EyeIcon className="w-5" />
+    </Link>
+  );
+}
+
+export function DeleteRentalRequest({ id }: { id: string }) {
+  const deleteRentalRequestWithId = deleteRentalRequest.bind(null, id);
+  return (
+    <form action={deleteRentalRequestWithId}>
+      <button
+        type="submit"
+        className="rounded-md border p-2.5 hover:bg-primary hover:text-white cursor-pointer"
       >
         <TrashIcon className="w-5" />
       </button>

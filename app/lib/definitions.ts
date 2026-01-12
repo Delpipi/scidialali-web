@@ -13,6 +13,7 @@ export interface UserCreate extends User {
 
 export interface PublicUser extends User {
   role: "administrateur" | "locataire" | "prospect";
+  documents: string[] | [];
   is_active: boolean;
   created_at: Date;
   updated_at: Date | null;
@@ -67,11 +68,34 @@ export interface LoginResponse {
   token_type: string;
 }
 
-export interface ApiError {
-  detail: string;
+export class ApiError extends Error {
   status: number;
+  detail: string;
+
+  constructor(status: number, detail: string) {
+    super(detail);
+    this.name = "ApiError";
+    this.status = status;
+    this.detail = detail;
+  }
 }
 
 export interface ApiResponse {
   message: string;
+}
+
+/****************************
+ * ********** ESTATE ********
+ ****************************/
+export interface PublicRentalRequest {
+  id: string;
+  user_id: string;
+  estate_id: string;
+  message?: string | null;
+  status: 0 | 1 | 2;
+  admin_notes?: string | null;
+  user?: PublicUser | null;
+  estate?: PublicEstate | null;
+  created_at: Date;
+  updated_at: Date | null;
 }
