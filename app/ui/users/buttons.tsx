@@ -10,7 +10,7 @@ import Link from "next/link";
 export function CreateUser() {
   return (
     <Link
-      href="/dashboard/users/create"
+      href="/admin/users/create"
       className="flex h-10 items-center rounded-lg bg-primary px-small text-sm font-medium 
        text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
     >
@@ -23,7 +23,7 @@ export function CreateUser() {
 export function UpdateUser({ id }: { id: string }) {
   return (
     <Link
-      href={`/dashboard/users/${id}/edit`}
+      href={`/admin/users/${id}/edit`}
       className="rounded-md border p-2 hover:bg-primary hover:text-white"
     >
       <PencilIcon className="w-5" />

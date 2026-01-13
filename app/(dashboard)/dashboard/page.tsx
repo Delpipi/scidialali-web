@@ -1,0 +1,14 @@
+//dashboard/page.tsx
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+
+export default async function Page() {
+  const session = await auth();
+
+  if (!session?.user) redirect("/login");
+
+  if (session.user.role === "administrateur") redirect("/admin");
+  if (session.user.role === "locataire") redirect("/locataire");
+
+  redirect("/prospect");
+}

@@ -29,7 +29,7 @@ export default async function SideNav() {
             await signOut({ redirectTo: "/" });
           }}
         >
-          <button className="flex h-12 w-full grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3">
+          <button className="flex h-12 w-full grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-primary/10 hover:text-primary md:flex-none md:justify-start md:p-2 md:px-3 cursor-pointer">
             <PowerIcon className="w-6" />
             <div className="hidden md:block">Déconnecter</div>
           </button>

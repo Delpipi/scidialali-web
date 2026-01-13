@@ -6,8 +6,11 @@ import Link from "next/link";
 import { authenticate } from "../lib/actions";
 import { toast } from "react-hot-toast";
 import { KeyIcon, PhoneIcon } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginForm() {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const [formValue, setFormValue] = useState({ contact: "" });
 
   const [state, formAction, isProccessing] = useActionState(authenticate, {
@@ -24,7 +27,13 @@ export default function LoginForm() {
     if (state.fieldErrors && Object.keys(state.fieldErrors).length > 0) {
       toast.error(state.message);
     }
-  }, [state.message]);
+
+    if (state.status === "error") {
+      toast.error(state.message || "Erreur d'authentification");
+    } else if (state.status === "success") {
+      toast.success(state.message || "Connexion réussie !");
+    }
+  }, [state]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormValue({ ...formValue, [e.target.name]: e.target.value });
@@ -95,6 +104,7 @@ export default function LoginForm() {
                 ))}
             </div>
           </div>
+          <input type="hidden" name="redirectTo" value={callbackUrl} />
         </div>
         <button
           type="submit"
@@ -106,7 +116,7 @@ export default function LoginForm() {
         </button>
       </form>
 
-      <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+      <div className="flex items-center justify-center gap-2 text-sm text-gray-600 mt-small">
         <p>Vous n'avez pas encore de compte ?</p>
         <Link
           href="/register"

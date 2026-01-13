@@ -246,6 +246,7 @@ export default function RequestDetailPage({
 
           <div className="flex items-start justify-between gap-4">
             <div>
+              <h1 className="text-3xl font-bold text-slate-800">Demande</h1>
               {formattedDate && (
                 <div className="flex items-center gap-2 text-slate-600">
                   <Calendar className="w-4 h-4" />

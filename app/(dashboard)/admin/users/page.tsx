@@ -1,6 +1,5 @@
 import Search from "@/app/ui/search";
-import { CreateUser } from "@/app/ui/users/buttons";
-import Table from "@/app/ui/users/table";
+import UsersTable from "@/app/ui/users/users-table";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -9,23 +8,23 @@ export const metadata: Metadata = {
 
 export default async function Page(props: {
   searchParams?: Promise<{
-    query?: string;
+    search?: string;
     page?: string;
   }>;
 }) {
   const seachParams = await props.searchParams;
-  const query = seachParams?.query || "";
+  const search = seachParams?.search || "";
   const currentPage = Number(seachParams?.page) || 1;
   return (
     <div className="w-full">
-      <div className="flex w-full items-center justify-between">
-        <h1 className="text-2xl">Utilisateurs</h1>
+      <div className="mb-medium">
+        <h1 className="text-3xl font-bold text-slate-800">Utilisateurs</h1>
+        <p className="text-slate-600">Gérez les utilisateurs</p>
       </div>
       <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
         <Search placeholder="Recherche..." />
-        <CreateUser />
       </div>
-      <Table query={query} currentPage={currentPage} />
+      <UsersTable search={search} currentPage={currentPage} />
     </div>
   );
 }

@@ -3,7 +3,7 @@ import EStatesList from "@/app/ui/estates/estate-list";
 import FilterItems from "@/app/ui/estates/estate-filters";
 import Search from "@/app/ui/search";
 import { CreateUser } from "@/app/ui/users/buttons";
-import Table from "@/app/ui/users/table";
+import Table from "@/app/ui/users/users-table";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

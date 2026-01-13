@@ -1,18 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { useActionState, useEffect, useState } from "react";
+import { register } from "../lib/actions";
 import {
   ArrowRightIcon,
-  BanknotesIcon,
   BriefcaseIcon,
-  DevicePhoneMobileIcon,
-  EnvelopeIcon,
-  ExclamationCircleIcon,
   KeyIcon,
+  MailIcon,
+  SmartphoneIcon,
   UserCircleIcon,
-} from "@heroicons/react/24/outline";
-import { useActionState, useState } from "react";
-import { register } from "../lib/actions";
+} from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function RegistrationForm() {
   const [formValues, setFormValues] = useState({
@@ -22,15 +21,28 @@ export default function RegistrationForm() {
     email: "",
     contact: "",
     profession: "",
-    revenu: "",
   });
 
-  const [state, formAction, isPending] = useActionState(register, {
-    errors: {},
-    status: "",
+  const [state, formAction, isProccessing] = useActionState(register, {
+    status: "idle",
     message: "",
+    data: {},
+    fieldErrors: {},
+    httpStatus: 0,
   });
 
+  useEffect(() => {
+    if (!state.message) return;
+
+    if (state.fieldErrors && Object.entries(state.fieldErrors).length > 0) {
+      toast.error(state.message);
+    } else {
+      toast.success(state.message);
+      setTimeout(() => {
+        window.location.replace("/login");
+      }, 1000);
+    }
+  }, [state.message]);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormValues({
       ...formValues,
@@ -61,7 +73,7 @@ export default function RegistrationForm() {
                 />
                 <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
               </div>
-              {state?.errors?.nom?.map((error) => (
+              {state?.fieldErrors?.nom?.map((error) => (
                 <p key={error} className="mt-2 text-sm text-red-500">
                   {error}
                 </p>
@@ -89,7 +101,7 @@ export default function RegistrationForm() {
                 />
                 <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
               </div>
-              {state?.errors?.prenom?.map((error) => (
+              {state?.fieldErrors?.prenom?.map((error) => (
                 <p key={error} className="mt-2 text-sm text-red-500">
                   {error}
                 </p>
@@ -117,7 +129,7 @@ export default function RegistrationForm() {
                 />
                 <KeyIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
               </div>
-              {state?.errors?.password?.map((error) => (
+              {state?.fieldErrors?.password?.map((error) => (
                 <p key={error} className="mt-2 text-sm text-red-500">
                   {error}
                 </p>
@@ -140,9 +152,9 @@ export default function RegistrationForm() {
                   onChange={handleChange}
                   className="px-large py-xsmall bg-gray-100 outline-2 outline-gray-600 rounded-sm w-full placeholder-gray-500"
                 />
-                <EnvelopeIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                <MailIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
               </div>
-              {state?.errors?.email?.map((error) => (
+              {state?.fieldErrors?.email?.map((error) => (
                 <p key={error} className="mt-2 text-sm text-red-500">
                   {error}
                 </p>
@@ -167,9 +179,9 @@ export default function RegistrationForm() {
                   onChange={handleChange}
                   className="px-large py-xsmall bg-gray-100 outline-2 outline-gray-600 rounded-sm w-full placeholder-gray-500"
                 />
-                <DevicePhoneMobileIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                <SmartphoneIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
               </div>
-              {state?.errors?.contact?.map((error) => (
+              {state?.fieldErrors?.contact?.map((error) => (
                 <p key={error} className="mt-2 text-sm text-red-500">
                   {error}
                 </p>
@@ -196,34 +208,7 @@ export default function RegistrationForm() {
                 />
                 <BriefcaseIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
               </div>
-              {state?.errors?.profession?.map((error) => (
-                <p key={error} className="mt-2 text-sm text-red-500">
-                  {error}
-                </p>
-              ))}
-            </div>
-
-            {/* Revenu */}
-            <div className="mb-4">
-              <label
-                htmlFor="revenu"
-                className="mb-2 block text-sm font-medium"
-              >
-                Revenu
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  id="revenu"
-                  name="revenu"
-                  placeholder="Votre revenu mensuel"
-                  value={formValues.revenu}
-                  onChange={handleChange}
-                  className="px-large py-xsmall bg-gray-100 outline-2 outline-gray-600 rounded-sm w-full placeholder-gray-500"
-                />
-                <BanknotesIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
-              </div>
-              {state?.errors?.revenu?.map((error) => (
+              {state?.fieldErrors?.profession?.map((error) => (
                 <p key={error} className="mt-2 text-sm text-red-500">
                   {error}
                 </p>
@@ -232,22 +217,14 @@ export default function RegistrationForm() {
           </div>
         </div>
 
-        {/* Global error */}
-        <div aria-live="polite" aria-atomic="true">
-          {state?.message ? (
-            <>
-              <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-              <p className="mt-2 text-sm text-red-500">{state.message}</p>
-            </>
-          ) : (
-            ""
-          )}
-        </div>
-
-        <Button className="mt-4 w-full cursor-pointer" disabled={isPending}>
-          {isPending ? "Inscription..." : "S'inscrire"}{" "}
-          <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
-        </Button>
+        <button
+          type="submit"
+          className="mt-4 w-full cursor-pointer bg-primary rounded-md flex items-center p-xsmall text-white"
+          disabled={isProccessing}
+        >
+          {isProccessing ? "Inscription..." : "S'inscrire"}
+          <ArrowRightIcon className="ml-auto h-5 w-5" />
+        </button>
       </form>
       <div className="flex items-center justify-center gap-2 text-sm text-gray-600 mt-small">
         <p>Vous avez déjà un compte ?</p>

@@ -1,5 +1,4 @@
 export interface User {
-  id: string | null;
   nom: string | null;
   prenom: string | null;
   email: string | null;
@@ -11,9 +10,17 @@ export interface UserCreate extends User {
   password: string | null;
 }
 
-export interface PublicUser extends User {
+export interface UpdateUser extends User {
+  id: string;
   role: "administrateur" | "locataire" | "prospect";
   documents: string[] | [];
+  is_active: boolean;
+}
+
+export interface PublicUser extends User {
+  id: string;
+  role: "administrateur" | "locataire" | "prospect";
+  documents: string[];
   is_active: boolean;
   created_at: Date;
   updated_at: Date | null;

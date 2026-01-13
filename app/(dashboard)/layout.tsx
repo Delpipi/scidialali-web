@@ -1,5 +1,4 @@
 import SideNav from "@/app/ui/dashboard/sidenav";
-import SCIDialaliLogo from "../ui/sci-dialali-logo";
 import { LinkButton } from "../ui/button";
 
 export default function Layout({ children }: { children: React.ReactNode }) {

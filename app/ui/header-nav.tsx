@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { LinkButton } from "./button";
+import { LogInIcon, PowerIcon } from "lucide-react";
 
 export function HeaderNav({ user }: { user: any }) {
   const getDashboardLink = () => {
@@ -25,7 +26,10 @@ export function HeaderNav({ user }: { user: any }) {
           Dashboard
         </LinkButton>
       ) : (
-        <Link href="/login">Connexion</Link>
+        <LinkButton href="/login" className="flex gap-xsmall">
+          <LogInIcon className="w-4 font-semibold" />
+          Connexion
+        </LinkButton>
       )}
     </nav>
   );

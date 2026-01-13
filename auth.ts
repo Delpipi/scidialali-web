@@ -2,6 +2,7 @@ import NextAuth, { User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { apiRequest } from "@/app/lib/actions";
 import { ApiError, LoginResponse, PublicUser } from "@/app/lib/definitions";
+import toast from "react-hot-toast";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
@@ -37,32 +38,32 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }),
           });
 
-          const user = await apiRequest<PublicUser>("/api/auth/me", {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${result.access_token}`,
-            },
-          });
+          if (result) {
+            const user = await apiRequest<PublicUser>("/api/auth/me", {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${result.access_token}`,
+              },
+            });
 
-          if (result && user) {
-            return {
-              id: user.id,
-              nom: user.nom,
-              prenom: user.prenom,
-              email: user.email,
-              contact: user.contact,
-              profession: user.profession,
-              role: user.role,
-              is_active: user.is_active,
-              accessToken: result.access_token,
-            } as User;
+            if (user) {
+              return {
+                id: user.id,
+                nom: user.nom,
+                prenom: user.prenom,
+                email: user.email,
+                contact: user.contact,
+                profession: user.profession,
+                role: user.role,
+                is_active: user.is_active,
+                accessToken: result.access_token,
+              } as User;
+            }
           }
 
           return null;
-        } catch (error) {
-          console.error("Erreur d'authentification:", error);
-          const apiError = error as ApiError;
-          throw Error(apiError.detail || "Erreur lors de l'authentification");
+        } catch (error: any) {
+          throw new Error(error.message || "Erreur d'authentification");
         }
       },
     }),

@@ -1,79 +1,49 @@
-// middleware.ts  (à la racine du projet)
-import { auth } from "@/auth"; // ton fichier d'export auth
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "./auth";
 
-async function middleware(req: NextRequest) {
+// 1. Specify protected and public routes
+const protectedRoutes = ["/dashboard"];
+const publicRoutes = ["/login", "/signup", "/"];
+
+export default async function proxy(req: NextRequest) {
+  // 2. Check if the current route is protected or public
+  const path = req.nextUrl.pathname;
+  const isProtectedRoute = protectedRoutes.includes(path);
+  const isPublicRoute = publicRoutes.includes(path);
+
   const session = await auth();
-  const { nextUrl } = req;
 
-  const isLoggedIn = !!session?.user;
+  const url = new URL(req.url);
 
-  // 1. Routes protégées par rôle
-  const adminPaths = ["/admin", "/admin/"];
-  const locatairePaths = ["/locataire", "/locataire/"];
-  const prospectPaths = ["/prospect", "/prospect/"]; // si besoin
+  //Allow access to home
+  if (url.pathname === "/") {
+    return NextResponse.next();
+  }
 
-  const isAdminRoute = adminPaths.some((path) =>
-    nextUrl.pathname.startsWith(path)
-  );
-  const isLocataireRoute = locatairePaths.some((path) =>
-    nextUrl.pathname.startsWith(path)
-  );
-  const isProspectRoute = prospectPaths.some((path) =>
-    nextUrl.pathname.startsWith(path)
-  );
-
-  const isAuthPage = nextUrl.pathname.startsWith("/login");
-
-  // 2. Cas 1 : utilisateur NON connecté → on protège les routes dashboard
-  if ((isAdminRoute || isLocataireRoute || isProspectRoute) && !isLoggedIn) {
-    const callbackUrl = nextUrl.pathname + nextUrl.search;
+  // 4. Redirect to /login if the user is not authenticated
+  if (isProtectedRoute && !session?.user) {
+    const callbackUrl = url.pathname + url.search;
     return NextResponse.redirect(
-      new URL(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`, nextUrl)
+      new URL(
+        `/login?callbackUrl=${encodeURIComponent(callbackUrl)}`,
+        req.nextUrl
+      )
     );
   }
 
-  // 3. Cas 2 : utilisateur CONNECTÉ → redirection intelligente après login
-  if (isLoggedIn && isAuthPage) {
-    const role = (session?.user as any)?.role?.toLowerCase?.(); // adapte selon ton type
-
-    if (!session?.user) {
-      throw new Error("Session introuvale");
-    }
-
-    // Dispatcher par rôle - adapte les chemins selon ton projet
-    switch (session.user.role) {
-      case "administrateur":
-        return NextResponse.redirect(new URL("/admin", nextUrl));
-      case "locataire":
-        return NextResponse.redirect(new URL("/locataire", nextUrl));
-      case "prospect":
-        return NextResponse.redirect(new URL("/prospect", nextUrl));
-
-      default:
-        // fallback - ou page d'erreur / accueil
-        return NextResponse.redirect(new URL("/", nextUrl));
-    }
+  // 5. Redirect to /dashboard if the user is authenticated
+  if (
+    isPublicRoute &&
+    session?.user &&
+    !req.nextUrl.pathname.startsWith("/dashboard")
+  ) {
+    return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
   }
 
-  // Tout est OK → on continue
   return NextResponse.next();
 }
 
-// Export avec le wrapper auth (important pour v5 !)
-export default auth(middleware);
-
-// Matcher - attention aux exclusions
+// Routes Proxy should not run on
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - api routes
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|.*\\.png$).*)"],
 };

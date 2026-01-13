@@ -149,7 +149,6 @@ async function apiUpload<T>(
   const session = await auth();
 
   const headers: HeadersInit = {
-    "Content-Type": "application/json",
     ...(session?.accessToken && {
       Authorization: `Bearer ${session.accessToken}`,
     }),
@@ -157,8 +156,8 @@ async function apiUpload<T>(
   };
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    headers,
     ...options,
+    headers,
   });
 
   if (!response.ok) {
@@ -201,20 +200,20 @@ export async function authenticate(
     };
   }
 
+  const callbackUrl = formData.get("callbackUrl");
+
   try {
-    await signIn("credentials", {
+    const result = await signIn("credentials", {
       contact: validateFields.data.contact,
       password: validateFields.data.password,
-      redirect: false,
+      redirectTo: callbackUrl as string,
     });
   } catch (error) {
     if (error instanceof AuthError) {
-      switch (error.type) {
-        case "CredentialsSignin":
-          return { status: "error", message: "Identifiants invalides." };
-        default:
-          return { status: "error", message: "Une erreur est survenue." };
-      }
+      return {
+        status: "error",
+        message: error.cause?.err?.message,
+      };
     }
     throw error;
   }
@@ -223,15 +222,12 @@ export async function authenticate(
 }
 
 //UPDATE PASSWORD
-export async function updatePassword(
-  prevState: UpdatePasswordState,
-  formData: FormData
-): Promise<UpdatePasswordState> {
+export async function updatePassword(oldPassword: string, newPassword: string) {
   const validateOldPasswordField = updatePasswordSchema.safeParse({
-    password: formData.get("oldPassword"),
+    password: oldPassword,
   });
   const validateNewPasswordField = updatePasswordSchema.safeParse({
-    password: formData.get("newPassword"),
+    password: newPassword,
   });
 
   if (!validateOldPasswordField.success || !validateNewPasswordField.success) {
@@ -296,6 +292,7 @@ export async function register(
   }
 
   const userData: CreateUserData = validateFields.data;
+
 
   try {
     const result = await apiRequest<ApiResponse>("/api/auth/signup", {
@@ -524,46 +521,19 @@ export async function deleteEstate(id: string) {
 //GET ALL USER
 export async function getAllUsers(currentPage: number) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-  try {
-    const users = await apiRequest<PublicUser[]>(
-      `/api/users?limit=${ITEMS_PER_PAGE}&offset=${offset}`
-    );
-
-    return {
-      status: "success",
-      data: users,
-    };
-  } catch (error) {
-    console.error("ERREUR GET ALL USERS", error);
-    const apiError = error as ApiError;
-    return {
-      status: "error",
-      message: apiError.detail || "Une erreur est survenue",
-      httpStatus: apiError.status,
-    };
-  }
+  const users = await apiRequest<PublicUser[]>(
+    `/api/users?limit=${ITEMS_PER_PAGE}&offset=${offset}`
+  );
+  return users;
 }
 
 //GET USER
 export async function getUser(id: string) {
-  try {
-    const user = await apiRequest<PublicUser>(`/api/users/${id}`, {
-      method: "GET",
-    });
-
-    return {
-      status: "success",
-      data: user,
-    };
-  } catch (error) {
-    console.error("ERREUR GET USER", error);
-    const apiError = error as ApiError;
-    return {
-      status: "error",
-      message: apiError.detail || "Une erreur est survenue",
-      httpStatus: apiError.status,
-    };
-  }
+  const user = await apiRequest<PublicUser>(`/api/users/${id}`, {
+    method: "GET",
+  });
+  console.log(user);
+  return user;
 }
 
 //================ UPDATE USER ===================
@@ -576,13 +546,13 @@ export async function updateUser(formData: FormData) {
       email: formData.get("email"),
       contact: formData.get("contact"),
       profession: formData.get("profession"),
-      revenu: Number(formData.get("revenu")),
       role: formData.get("role"),
-      is_active: formData.get("is_active"),
+      is_active: !Boolean(formData.get("is_active")),
       documents: JSON.parse(formData.get("documents") as string),
     });
 
     if (!validateFields.success) {
+      console.error(validateFields.error.flatten().fieldErrors);
       return {
         status: "error",
         message: "Veuillez corriger les erreurs de validation.",
@@ -787,7 +757,6 @@ export async function getRentalRequestById(id: string) {
 }
 
 export async function approveRentalRequest(id: string, admin_notes: string) {
-  console.log("+++ STRT ++++");
   const result = await apiRequest(`/api/rental_requests/${id}/approve`, {
     method: "PATCH",
     body: JSON.stringify({ admin_notes: admin_notes }),
