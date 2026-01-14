@@ -2,62 +2,317 @@
 
 import {
   createEstateSchema,
+  CreateUserData,
   createUserSchema,
-  CreateUserSchema,
   EstateCreateData,
   estateSchema,
   EstateUpdateData,
+  loginSchema,
+  updatePasswordSchema,
   UpdateUserSchema,
   updateUserSchema,
 } from "./schema";
-import { revalidatePath } from "next/cache";
+
+import {
+  ApiError,
+  ApiResponse,
+  DeleteFileResponse,
+  PaginatedData,
+  PublicEstate,
+  PublicRentalRequest,
+  PublicUser,
+  UploadResponse,
+} from "./definitions";
+import { auth, signIn, signOut } from "@/auth";
+import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
-import { Estate, User } from "./definitions";
-import { signIn } from "next-auth/react";
-import { requireAuth } from "./auth";
+import { revalidatePath } from "next/cache";
+import { ITEMS_PER_PAGE } from "./data";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-const ITEMS_PER_PAGE = 10;
+const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
 
-/***********************************************
+/**************************************
+ ************* TYPES STATE ************
+ **************************************/
+export type AdminStats = {
+  total_users: number;
+  active_tenants: number;
+  available_estates: number;
+  rented_estates: number;
+  pending_requests: number;
+  unread_messages: number;
+  pending_payments: number;
+  late_payments: number;
+};
+
+export type UserState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+  data?: any;
+  fieldErrors?: {
+    nom?: string[];
+    prenom?: string[];
+    password?: string[];
+    email?: string[];
+    contact?: string[];
+    profession?: string[];
+    role?: string[];
+    is_active?: string[];
+    documents?: string[];
+  };
+  httpStatus?: number;
+};
+
+export type EstateState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+  data?: any;
+  fieldErrors?: {
+    id?: string[];
+    titre?: string[];
+    adresse?: string[];
+    type?: string[];
+    loyer_mensuel?: string[];
+    rooms?: string[];
+    status?: string[];
+    area?: string[];
+    id_gestionnaire?: string[];
+    id_locataire?: string[];
+    images?: string[];
+    documents?: string[];
+  };
+  httpStatus?: number;
+};
+
+export type AuthState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+  data?: any;
+  fieldErrors?: {
+    contact?: string[];
+    password?: string[];
+  };
+  httpStatus?: number;
+};
+
+export type UpdatePasswordState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+  data?: any;
+  fieldErrors?: {
+    oldPassword?: string[];
+    newPassword?: string[];
+  };
+  httpStatus?: number;
+};
+
+export async function handleUnauthorized() {
+  // This clears the Auth.js session
+  await signOut({ redirect: false });
+  redirect("/login");
+}
+
+/**************************************
+ ************* API REQUEST ************
+ **************************************/
+export async function apiRequest<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const session = await auth();
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(session?.accessToken && {
+      Authorization: `Bearer ${session.accessToken}`,
+    }),
+    ...options.headers,
+    credentials: "include",
+  };
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    headers,
+    ...options,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new ApiError(response.status, errorData.detail);
+  }
+
+  const data = await response.json();
+  return data;
+}
+
+async function apiUpload<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const session = await auth();
+
+  const headers: HeadersInit = {
+    ...(session?.accessToken && {
+      Authorization: `Bearer ${session.accessToken}`,
+    }),
+    ...options.headers,
+  };
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new ApiError(response.status, errorData.detail);
+  }
+
+  const data = await response.json();
+  return data;
+}
+
+/**************************************
+ ************* STATS *******************
+ **************************************/
+export async function getAdminStats() {
+  const result = await apiRequest<AdminStats>("/api/stats/admin", {
+    method: "GET",
+  });
+  return result;
+}
+
+/**************************************
  ************* AUTH *******************
- ***********************************************/
+ **************************************/
 
-export async function registerUser(
-  prevState: string | undefined,
+export async function authenticate(
+  prevState: AuthState,
   formData: FormData
-) {
+): Promise<AuthState> {
+  const validateFields = loginSchema.safeParse({
+    contact: formData.get("contact"),
+    password: formData.get("password"),
+  });
+
+  if (!validateFields.success) {
+    return {
+      status: "error",
+      message: "Veuillez corriger les erreurs de validations.",
+      fieldErrors: validateFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const callbackUrl = formData.get("callbackUrl");
+
   try {
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    const callbackUrl = formData.get("redirectTo") as string;
-
-    // Validation
-    if (!email || !password) {
-      return "Email et mot de passe requis.";
-    }
-
-    console.log(`EMAIL: ${email}`);
-
     const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
+      contact: validateFields.data.contact,
+      password: validateFields.data.password,
+      redirectTo: callbackUrl as string,
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return {
+        status: "error",
+        message: error.cause?.err?.message,
+      };
+    }
+    throw error;
+  }
+
+  return { status: "success", message: "Connecté !" };
+}
+
+//UPDATE PASSWORD
+export async function updatePassword(oldPassword: string, newPassword: string) {
+  const validateOldPasswordField = updatePasswordSchema.safeParse({
+    password: oldPassword,
+  });
+  const validateNewPasswordField = updatePasswordSchema.safeParse({
+    password: newPassword,
+  });
+
+  if (!validateOldPasswordField.success || !validateNewPasswordField.success) {
+    return {
+      status: "error",
+      message: "Veuillez corriger les erreurs de validation.",
+      fieldErrors: {
+        oldPassword:
+          validateOldPasswordField.error?.flatten().fieldErrors.password,
+        newPassword:
+          validateNewPasswordField.error?.flatten().fieldErrors.password,
+      },
+    };
+  }
+
+  const data = {
+    old_password: validateOldPasswordField.data.password,
+    new_password: validateNewPasswordField.data.password,
+  };
+
+  try {
+    const result = await apiRequest<ApiResponse>("/api/auth/update_password", {
+      method: "PUT",
+      body: JSON.stringify(data),
     });
 
-    if (result?.error) {
-      return "Email ou mot de passe incorrect.";
-    }
-
-    // Redirection en cas de succès
-    if (result?.ok) {
-      redirect(callbackUrl || "/dashboard");
-    }
-
-    return undefined;
+    return {
+      status: "success",
+      message: result.message,
+      data: result,
+    };
   } catch (error) {
-    console.error("Erreur d'authentification:", error);
-    return "Une erreur est survenue. Veuillez réessayer.";
+    const apiError = error as ApiError;
+    return {
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue.",
+      httpStatus: apiError.status,
+    };
+  }
+}
+
+//REGISTER USER
+export async function register(
+  prevState: UserState,
+  formData: FormData
+): Promise<UserState> {
+  const validateFields = createUserSchema.safeParse({
+    nom: formData.get("nom"),
+    prenom: formData.get("prenom"),
+    password: formData.get("password"),
+    email: formData.get("email"),
+    contact: formData.get("contact"),
+    profession: formData.get("profession"),
+  });
+
+  if (!validateFields.success) {
+    return {
+      status: "error",
+      message: "Veuillez corriger les erreurs de validation.",
+      fieldErrors: validateFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const userData: CreateUserData = validateFields.data;
+
+  try {
+    const result = await apiRequest<ApiResponse>("/api/auth/signup", {
+      method: "POST",
+      body: JSON.stringify(userData),
+    });
+
+    return {
+      status: "success",
+      message: result.message,
+      data: result,
+    };
+  } catch (error) {
+    const apiError = error as ApiError;
+    return {
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue.",
+      httpStatus: apiError.status,
+    };
   }
 }
 
@@ -66,142 +321,141 @@ export async function registerUser(
  ***********************************************/
 
 //============== GET ALL ESTATE ================
-export async function getAllEstates(currentPage: number) {
-  const session = await requireAuth();
+export async function getAllAvailableEstates({
+  type,
+  order_by,
+  currentPage = 1,
+}: {
+  type?: string;
+  order_by: string;
+  currentPage?: number;
+}) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const res = await fetch(
-      `${API_BASE_URL}/estates?limit=${ITEMS_PER_PAGE}&offset=${offset}`,
-      { headers: { Authorization: `Bearer ${session.accessToken}` } }
+    const result = await apiRequest<PaginatedData>(
+      `/api/estates/available?&type=${type}&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`,
+      { method: "GET" }
     );
 
-    if (!res.ok) {
-      const error = (await res.json())["detail"];
-      return { sucess: false, error: error };
-    }
-    const estates = (await res.json()) as Estate[];
-    return { sucess: true, estates: estates };
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    console.error("ERREUR GET ALL AVAILABLE ESTATE", error);
+    const apiError = error as ApiError;
+    return {
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue.",
+      httpStatus: apiError.status,
+    };
+  }
+}
+
+export async function getAllEstates({
+  status,
+  type,
+  order_by,
+  currentPage = 1,
+}: {
+  status?: number;
+  type?: string;
+  order_by: string;
+  currentPage?: number;
+}) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  try {
+    let url = `/api/estates?type=${type}&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}&status=${
+      status || ""
+    }`;
+
+    const response = await apiRequest<PaginatedData>(url);
+
+    return {
+      status: "success",
+      data: response,
+    };
   } catch (error) {
     console.error("ERREUR GET ALL ESTATE", error);
+    const apiError = error as ApiError;
+    console.error(apiError.detail);
     return {
-      sucess: false,
-      error: "Une erreur c'est produite. Merci de réessayer",
+      status: "error",
+
+      message: apiError.detail || "Une erreur est survenue.",
+      httpStatus: apiError.status,
     };
   }
 }
 
-//================ GET USER ===================
+//GET ESTATE
 export async function getEstate(id: string) {
-  const session = await requireAuth();
   try {
-    const res = await fetch(`${API_BASE_URL}/estates/${id}`, {
-      headers: { Authorization: `Bearer ${session.accessToken}` },
+    const estate = await apiRequest<PublicEstate>(`/api/estates/${id}`, {
+      method: "GET",
     });
 
-    if (!res.ok) {
-      const error = (await res.json())["detail"];
-      return { sucess: false, error: error };
-    }
-
-    const user = (await res.json()) as Estate;
-    return { sucess: true, user: user };
-  } catch (error) {
-    console.error("ERREUR GET USER", error);
     return {
-      sucess: false,
-      error: "Une erreur c'est produite. Merci de réessayer",
+      status: "success",
+      data: estate,
+    };
+  } catch (error) {
+    console.error("ERREUR GET ESTATE", error);
+    const apiError = error as ApiError;
+    return {
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue",
+      httpStatus: apiError.status,
     };
   }
 }
 
-//============== UPDATE ESTATE ================
-export type ErrorEstate = {
-  errors?: {
-    id?: string[];
-    titre?: string[];
-    adresse?: string[];
-    type?: string[];
-    loyerMensuel?: string[];
-    rooms?: string[];
-    status?: string[];
-    area?: string[];
-    idGestionnaireAssigne?: string[];
-    images?: string[];
-    documents?: string[];
-  };
-  message?: string | null;
-};
+// CREATE ESTATE
 export async function createEstate(
-  prevState: ErrorEstate,
+  prevState: EstateState,
   formData: FormData
-): Promise<ErrorEstate> {
+): Promise<EstateState> {
   const validateFields = createEstateSchema.safeParse({
     titre: formData.get("titre"),
     adresse: formData.get("adresse"),
     type: formData.get("type"),
-    loyerMensuel: Number(formData.get("loyerMensuel")),
+    loyer_mensuel: Number(formData.get("loyer_mensuel")),
     rooms: Number(formData.get("rooms")),
     status: formData.get("status"),
     area: Number(formData.get("area")),
   });
 
   if (!validateFields.success) {
-    console.log(
-      "ERRORS VALIDATION:",
-      validateFields.error.flatten().fieldErrors
-    );
+    console.error(validateFields.error.flatten().fieldErrors);
     return {
-      errors: validateFields.error.flatten().fieldErrors,
+      status: "error",
       message: "Veuillez corriger les erreurs de validation.",
+      fieldErrors: validateFields.error.flatten().fieldErrors,
     };
   }
 
   const estateData: EstateCreateData = validateFields.data;
 
-  const session = await requireAuth();
-
-  const res = await fetch(`${API_BASE_URL}/estates`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${session.accessToken}`,
-    },
-    body: JSON.stringify(estateData),
-  });
-
-  if (res.status === 422) {
-    const errorData = await res.json();
-
-    const formattedErrors: Record<string, string[]> = {};
-
-    if (errorData.errors && typeof errorData.errors === "object") {
-      Object.entries(errorData.errors).forEach(([fieldName, errorMessage]) => {
-        formattedErrors[fieldName] = [String(errorMessage)];
-      });
-    }
-
+  try {
+    const result = await apiRequest<ApiResponse>("/api/estates", {
+      method: "POST",
+      body: JSON.stringify(estateData),
+    });
+  } catch (error) {
+    console.error("ERREUR CREATE ESTATE", error);
+    const apiError = error as ApiError;
     return {
-      errors: formattedErrors,
-      message: "Veuillez corriger les erreurs de validation.",
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue",
+      httpStatus: apiError.status,
     };
   }
 
-  if (!res.ok) {
-    const errorText = await res.text();
-    console.error("Erreur API:", errorText);
-
-    const error = JSON.parse(errorText);
-    return {
-      errors: {},
-      message: error["detail"],
-    };
-  }
-
-  revalidatePath("/dashboard/estates");
-  redirect("/dashboard/estates");
+  revalidatePath("/admin/estates");
+  redirect("/admin/estates");
 }
 
-//============== UPDATE ESTATE ================
+//UPDATE ESTATE
 export async function updateEstate(formData: FormData) {
   try {
     const validateFields = estateSchema.safeParse({
@@ -209,72 +463,60 @@ export async function updateEstate(formData: FormData) {
       titre: formData.get("titre"),
       adresse: formData.get("adresse"),
       type: formData.get("type"),
-      loyerMensuel: Number(formData.get("loyerMensuel")),
+      loyer_mensuel: Number(formData.get("loyer_mensuel")),
       rooms: Number(formData.get("rooms")),
       status: formData.get("status"),
       area: Number(formData.get("area")),
-      idGestionnaireAssigne: formData.get("idGestionnaireAssigne"),
+      id_gestionnaire: formData.get("id_gestionnaire"),
+      id_locataire: formData.get("id_locataire"),
       images: JSON.parse(formData.get("images") as string),
       documents: JSON.parse(formData.get("documents") as string),
     });
 
     if (!validateFields.success) {
-      console.log("ERRORS STATUS:", validateFields.error.flatten().fieldErrors);
       return {
-        errors: validateFields.error.flatten().fieldErrors,
+        status: "error",
         message: "Veuillez corriger les erreurs de validation.",
+        fieldErrors: validateFields.error.flatten().fieldErrors,
       };
     }
 
-    const estateData: EstateUpdateData = validateFields.data;
+    const estateData: EstateUpdateData = {
+      ...validateFields.data,
+      status: parseInt(validateFields.data.status, 10), // convert string to number
+    };
 
-    const session = await requireAuth();
+    const result = await apiRequest<ApiResponse>(
+      `/api/estates/${estateData.id}`,
+      { method: "PUT", body: JSON.stringify(estateData) }
+    );
 
-    const res = await fetch(`${API_BASE_URL}/estates/${estateData.id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.accessToken}`,
-      },
-      body: JSON.stringify(estateData),
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      return {
-        success: false,
-        error:
-          errorData.detail || "Erreur lors de la mise à jour de l'utilisateur",
-      };
-    }
-
-    const result = await res.json();
-    return { success: true, user: result };
-  } catch (error) {
-    console.error("ERREUR UPDATE USER", error);
     return {
-      success: false,
-      error: "Une erreur c'est produite. Merci de réessayer",
+      status: "success",
+      message: result.message,
+      data: result,
+    };
+  } catch (error) {
+    console.error("ERREUR UPDATE ESTATE", error);
+    const apiError = error as ApiError;
+    return {
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue",
+      httpStatus: apiError.status,
     };
   }
 }
 
-//============== DELETE ESTATE ================
+// DELETE ESTATE
 export async function deleteEstate(id: string) {
-  const session = await requireAuth();
   try {
-    const res = await fetch(`${API_BASE_URL}/estates/${id}`, {
+    const result = await apiRequest<ApiResponse>(`/api/estates/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${session.accessToken}` },
     });
-    if (!res.ok) {
-      const error = (await res.json())["detail"];
-      throw new Error(error);
-    }
-    revalidatePath("/dashboard/estates");
   } catch (error) {
     console.error("ERREUR DELETE ESTATE", error);
-    throw new Error("Une erreur c'est produite. Merci de réessayer");
+    const apiError = error as ApiError;
+    throw apiError;
   }
 }
 
@@ -282,214 +524,95 @@ export async function deleteEstate(id: string) {
  ************* USER ACTION *********************
  ***********************************************/
 
-//=========== GET ALL USER =====================
-export async function getAllUsers(currentPage: number) {
+//GET ALL USER
+export async function getAllUsers({
+  role,
+  order_by,
+  currentPage,
+}: {
+  role?: string;
+  order_by: string;
+  currentPage: number;
+}) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-  const session = await requireAuth();
-  try {
-    const res = await fetch(
-      `${API_BASE_URL}/users?limit=${ITEMS_PER_PAGE}&offset=${offset}`,
-      { headers: { Authorization: `Bearer ${session.accessToken}` } }
-    );
-    if (!res.ok) {
-      const error = (await res.json())["detail"];
-      return { sucess: false, error: error };
-    }
-    const users = (await res.json()) as User[];
-    return { sucess: true, users: users };
-  } catch (error) {
-    console.error("API Error:", error);
-    return {
-      sucess: false,
-      error: "Une erreur c'est produite. Merci de réessayer",
-    };
+
+  let url = `/api/users?limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`;
+  if (role !== undefined) {
+    url += `&role=${role}`;
   }
-}
-
-//================ GET USER ===================
-export async function getUser(id: string) {
-  const session = await requireAuth();
-  try {
-    const res = await fetch(`${API_BASE_URL}/users/${id}`, {
-      headers: { Authorization: `Bearer ${session.accessToken}` },
-    });
-
-    if (!res.ok) {
-      const error = (await res.json())["detail"];
-      return { sucess: false, error: error };
-    }
-
-    const user = (await res.json()) as User;
-    return { sucess: true, user: user };
-  } catch (error) {
-    console.error("ERREUR GET USER", error);
-    return {
-      sucess: false,
-      error: "Une erreur c'est produite. Merci de réessayer",
-    };
-  }
-}
-
-//================ CREATE USER ===================
-export type State = {
-  errors?: {
-    nom?: string[];
-    prenom?: string[];
-    password?: string[];
-    email?: string[];
-    contact?: string[];
-    profession?: string[];
-    revenu?: string[];
+  const response = await apiRequest<PaginatedData>(url);
+  return {
+    status: "success",
+    data: response,
   };
-  message?: string | null;
-};
+}
 
-export async function createUser(
-  prevState: State,
-  formData: FormData
-): Promise<State> {
-  const validateFields = createUserSchema.safeParse({
-    nom: formData.get("nom"),
-    prenom: formData.get("prenom"),
-    password: formData.get("password"),
-    email: formData.get("email"),
-    contact: formData.get("contact"),
-    profession: formData.get("profession"),
-    revenu: formData.get("revenu"),
+//GET USER
+export async function getUser(id: string) {
+  const user = await apiRequest<PublicUser>(`/api/users/${id}`, {
+    method: "GET",
   });
-
-  if (!validateFields.success) {
-    return {
-      errors: validateFields.error.flatten().fieldErrors,
-      message: "Veuillez corriger les erreurs de validation.",
-    };
-  }
-
-  const user: CreateUserSchema = validateFields.data;
-
-  const res = await fetch(`${API_BASE_URL}/auth/signup`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      nom: user.nom,
-      prenom: user.prenom,
-      password: user.password,
-      email: user.email,
-      contact: user.contact,
-      profession: user.profession,
-      revenu: user.revenu,
-    }),
-  });
-
-  if (res.status === 422) {
-    const errorData = await res.json();
-
-    // Transformer les erreurs du serveur au format attendu par la vue
-    const formattedErrors: Record<string, string[]> = {};
-
-    if (errorData.errors && typeof errorData.errors === "object") {
-      Object.entries(errorData.errors).forEach(([fieldName, errorMessage]) => {
-        formattedErrors[fieldName] = [String(errorMessage)];
-      });
-    }
-
-    return {
-      errors: formattedErrors,
-      message: "Veuillez corriger les erreurs de validation.",
-    };
-  }
-
-  if (!res.ok) {
-    const errorText = await res.text();
-    console.error("Erreur API:", errorText);
-
-    const error = JSON.parse(errorText);
-    return {
-      errors: {},
-      message: error["detail"],
-    };
-  }
-
-  revalidatePath("/dashboard/users");
-  redirect("/dashboard/users");
+  console.log(user);
+  return user;
 }
 
 //================ UPDATE USER ===================
 export async function updateUser(formData: FormData) {
   try {
     const validateFields = updateUserSchema.safeParse({
-      uid: formData.get("uid"),
+      id: formData.get("id"),
       nom: formData.get("nom"),
       prenom: formData.get("prenom"),
       email: formData.get("email"),
       contact: formData.get("contact"),
       profession: formData.get("profession"),
-      revenu: Number(formData.get("revenu")),
       role: formData.get("role"),
-      disabled: formData.get("disabled") === "on",
+      is_active: !Boolean(formData.get("is_active")),
       documents: JSON.parse(formData.get("documents") as string),
-      idBienAssocie: formData.get("idBienAssocie") as string,
     });
 
     if (!validateFields.success) {
-      console.log(validateFields.error.flatten().fieldErrors);
+      console.error(validateFields.error.flatten().fieldErrors);
       return {
-        errors: validateFields.error.flatten().fieldErrors,
+        status: "error",
         message: "Veuillez corriger les erreurs de validation.",
+        fieldErrors: validateFields.error.flatten().fieldErrors,
       };
     }
 
     const userData: UpdateUserSchema = validateFields.data;
 
-    const session = await requireAuth();
-
-    const res = await fetch(`${API_BASE_URL}/users/${userData.uid}`, {
+    const result = await apiRequest<ApiResponse>(`/api/users/${userData.id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.accessToken}`,
-      },
       body: JSON.stringify(userData),
     });
 
-    if (!res.ok) {
-      const errorData = await res.json();
-      return {
-        success: false,
-        error:
-          errorData.detail || "Erreur lors de la mise à jour de l'utilisateur",
-      };
-    }
-
-    const result = await res.json();
-    return { success: true, user: result };
+    return {
+      status: "success",
+      message: result.message,
+      data: result,
+    };
   } catch (error) {
     console.error("ERREUR UPDATE USER", error);
+    const apiError = error as ApiError;
     return {
-      success: false,
-      error: "Une erreur c'est produite. Merci de réessayer",
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue",
+      httpStatus: apiError.status,
     };
   }
 }
 
-//============== DELETE ESTATE ================
+//============== DELETE USER ================
 export async function deleteUser(id: string) {
-  const session = await requireAuth();
   try {
-    const res = await fetch(`${API_BASE_URL}/users/${id}`, {
+    const result = await apiRequest<ApiResponse>(`/api/users/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${session.accessToken}` },
     });
-    if (!res.ok) {
-      const error = (await res.json())["detail"];
-      throw new Error(error);
-    }
-    revalidatePath("/dashboard/estates");
   } catch (error) {
-    console.error("ERREUR DELETE ESTATE", error);
-    throw new Error("Une erreur c'est produite. Merci de réessayer");
+    console.error("ERREUR DELETE USER", error);
+    const apiError = error as ApiError;
+    throw apiError;
   }
 }
 
@@ -499,16 +622,18 @@ export async function deleteUser(id: string) {
 
 //================ UPLOAD DOCUMENT =============
 export async function uploadDocument(
-  userId: string,
+  id: string,
   files: File[],
-  folderName: string = "user_documents"
+  folderName: string
 ) {
   try {
     if (files.length === 0) {
-      return { success: false, error: "Aucun fichier fourni" };
+      return {
+        status: "error",
+        message: "Aucun fichier fourni",
+      };
     }
 
-    // Validation des fichiers
     const allowedTypes = [
       "application/pdf",
       "application/msword",
@@ -517,19 +642,19 @@ export async function uploadDocument(
       "image/png",
       "text/plain",
     ];
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = 10 * 1024 * 1024;
 
     for (const file of files) {
       if (!allowedTypes.includes(file.type)) {
         return {
-          success: false,
-          error: `Type de fichier non autorisé: ${file.name}`,
+          status: "error",
+          message: `Type de fichier non autorisé: ${file.name}`,
         };
       }
       if (file.size > maxSize) {
         return {
-          success: false,
-          error: `Fichier trop volumineux: ${file.name} (max 10MB)`,
+          status: "error",
+          message: `Fichier trop volumineux: ${file.name} (max 10MB)`,
         };
       }
     }
@@ -538,109 +663,130 @@ export async function uploadDocument(
     files.forEach((file) => {
       formData.append("files", file);
     });
-    const url = `http://localhost:8000/upload-multiple-files/${userId}/${folderName}`;
-    console.log("📤 Upload URL:", url);
 
-    const res = await fetch(
-      `http://localhost:8000/upload-multiple-files/${userId}/${folderName}`,
+    const response = await apiUpload<UploadResponse>(
+      `/api/upload-multiple-files/${id}/${folderName}`,
       {
         method: "POST",
         body: formData,
       }
     );
 
-    if (!res.ok) {
-      const errorData = await res.json();
-      return {
-        success: false,
-        error: errorData.detail || "Erreur lors de l'upload des fichiers",
-      };
-    }
-
-    const result = await res.json();
-
-    // Le backend retourne: { message, urls, count, environment }
     return {
-      success: true,
-      urls: result.urls || [], // Les URLs des fichiers uploadés
-      count: result.count || 0,
-      message: result.message || "Fichiers uploadés avec succès",
+      status: "success",
+      message: response.message,
+      data: {
+        urls: response.urls || [],
+        count: response.count || 0,
+      },
     };
   } catch (error) {
     console.error("Erreur lors de l'upload des documents:", error);
+    const apiError = error as ApiError;
     return {
-      success: false,
-      error: "Erreur lors de l'upload des documents",
+      status: "error",
+      message: apiError.detail || "Erreur lors de l'upload des fichiers",
+      httpStatus: apiError.status,
     };
   }
 }
 
 //================ DELETE DOCUMENT =============
 export async function deleteDocument(
-  userId: string,
+  id: string,
   fileUrls: string[],
-  folderName: string = "documents"
+  folderName: string
 ) {
   try {
     if (fileUrls.length === 0) {
-      return { success: false, error: "Aucun fichier à supprimer" };
+      return {
+        status: "error",
+        message: "Aucun fichier à supprimer",
+      };
     }
 
-    const response = await fetch(
-      `${API_BASE_URL}/delete-multiple-files/${userId}/${folderName}`,
+    const response = await apiRequest<DeleteFileResponse>(
+      `/api/delete-multiple-files/${id}/${folderName}`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           file_urls: fileUrls,
         }),
       }
     );
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      return {
-        success: false,
-        error: errorData.detail || "Erreur lors de la suppression des fichiers",
-      };
-    }
-
     return {
-      success: true,
-      message: "Fichiers supprimés avec succès",
+      status: "success",
+      message: response.message,
+      data: {
+        deleted_count: response.deleted_count,
+        failed_count: response.failed_count,
+      },
     };
   } catch (error) {
     console.error("Erreur lors de la suppression des documents:", error);
+    const apiError = error as ApiError;
     return {
-      success: false,
-      error: "Erreur lors de la suppression des documents",
+      status: "error",
+      message: apiError.detail || "Erreur lors de la suppression des fichiers",
+      httpStatus: apiError.status,
     };
   }
 }
 
-// Récupérer tous les biens
-export async function getAllBiens(): Promise<Estate[]> {
-  try {
-    const session = await requireAuth();
-    const response = await fetch(`${API_BASE_URL}/estates`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.accessToken}`,
-      },
-      cache: "no-store",
-    });
+/***********************************************
+ ************* RENTAL REQUEST ACTION ***********
+ ***********************************************/
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch biens: ${response.statusText}`);
-    }
-
-    const biens = (await response.json()) as Estate[];
-    return biens;
-  } catch (error) {
-    console.error("Erreur lors de la récupération des biens:", error);
-    return [];
+export async function getAllRentalRequest({
+  status,
+  order_by,
+  currentPage = 1,
+}: {
+  status?: number;
+  order_by: string;
+  currentPage?: number;
+}) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  let url = `/api/rental_requests/?limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`;
+  if (status !== undefined) {
+    url += `&status=${status}`;
   }
+  const response = await apiRequest<PaginatedData>(url);
+  return {
+    status: "success",
+    data: response,
+  };
+}
+
+export async function getRentalRequestById(id: string) {
+  const result = await apiRequest<PublicRentalRequest>(
+    `/api/rental_requests/${id}`,
+    {
+      method: "GET",
+    }
+  );
+  return result;
+}
+
+export async function approveRentalRequest(id: string, admin_notes: string) {
+  const result = await apiRequest(`/api/rental_requests/${id}/approve`, {
+    method: "PATCH",
+    body: JSON.stringify({ admin_notes: admin_notes }),
+  });
+  return result;
+}
+
+export async function rejectedRentalRequest(id: string) {
+  const message = await apiRequest(`/api/rental_requests/${id}/reject`, {
+    method: "PATCH",
+  });
+  return message;
+}
+
+export async function deleteRentalRequest(id: string) {
+  const message = await apiRequest<void>(`/api/rental_requests/${id}`, {
+    method: "DELETE",
+  });
+  return message;
 }

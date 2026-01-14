@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  scidialali-web:
+    image: alexandrepaulkouame/scidialali-web:latest
+    container_name: scidialali-web
+    ports:
+      - "3002:3000"
+    env_file:
+      - .env
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+  external: true

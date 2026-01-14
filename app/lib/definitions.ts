@@ -1,31 +1,133 @@
-export type User = {
-  uid: string;
-  nom: string;
-  prenom: string;
-  email: string;
-  contact: string;
-  profession: string;
-  revenu: number;
-  role: "administrateur" | "locataire" | "locataire potentiel";
-  disabled?: boolean;
-  idBienAssocie?: string | null;
-  documents?: string[];
-  createdAt?: string;
-  updatedAt?: string;
-};
+export interface User {
+  nom: string | null;
+  prenom: string | null;
+  email: string | null;
+  contact: string | null;
+  profession: string | null;
+}
 
-export type Estate = {
+export interface UserCreate extends User {
+  password: string | null;
+}
+
+export interface UpdateUser extends User {
   id: string;
+  role: "administrateur" | "locataire" | "prospect";
+  documents: string[] | [];
+  is_active: boolean;
+}
+
+export interface PublicUser extends User {
+  id: string;
+  role: "administrateur" | "locataire" | "prospect";
+  documents: string[];
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date | null;
+}
+
+/****************************
+ * ********** ESTATE ********
+ ****************************/
+export interface Estate {
   titre: string;
   adresse: string;
   type: "appartement" | "maison" | "bureau";
-  loyerMensuel: number;
+  status: 0 | 1 | 2;
+  loyer_mensuel: number;
   rooms: number;
-  status: "disponible" | "loué" | "reservé";
   area: number;
-  idGestionnaireAssigne?: string;
-  images?: string[];
-  documents?: string[];
-  createdAt?: string;
-  updatedAt?: string;
-};
+}
+
+export interface CreateEstate extends Estate {
+  images: string[] | [];
+  documents: string[] | [];
+}
+
+export interface UpdateEstate {
+  id: string;
+  titre?: string | null;
+  adresse?: string | null;
+  type: "appartement" | "maison" | "bureau";
+  status: 0 | 1 | 2;
+  loyer_mensuel?: number | null;
+  rooms?: number | null;
+  area?: number | null;
+  images?: string[] | [];
+  documents?: string[] | [];
+  id_gestionnaire?: string | null;
+  id_locataire?: string | null;
+}
+
+export interface PublicEstate extends CreateEstate {
+  id: string;
+  id_gestionnaire: string | null;
+  id_locataire: string | null;
+  created_at: Date;
+  updated_at: Date | null;
+}
+
+/*****************************
+ * ********* UPLOAD **********
+ *****************************/
+export interface UploadResponse {
+  message: string;
+  urls: string[];
+  count: number;
+}
+
+export interface DeleteFileResponse {
+  message: string;
+  deleted_count: number;
+  failed_count: number;
+}
+
+export interface LoginCredentials {
+  contact: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  id: string;
+  access_token: string;
+  token_type: string;
+}
+
+export class ApiError extends Error {
+  status: number;
+  detail: string;
+
+  constructor(status: number, detail: string) {
+    super(detail);
+    this.name = "ApiError";
+    this.status = status;
+    this.detail = detail;
+  }
+}
+
+export interface ApiResponse {
+  message: string;
+}
+
+/****************************
+ * ********** ESTATE ********
+ ****************************/
+export interface PublicRentalRequest {
+  id: string;
+  user_id: string;
+  estate_id: string;
+  message?: string | null;
+  status: 0 | 1 | 2;
+  admin_notes?: string | null;
+  user?: PublicUser | null;
+  estate?: PublicEstate | null;
+  created_at: Date;
+  updated_at: Date | null;
+}
+
+export interface PaginatedData {
+  items: any[];
+  total_count: number;
+  page: number;
+  limit: number;
+}

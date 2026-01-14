@@ -1,4 +1,9 @@
-import { User } from "./definitions";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export function groupByThree(num: number | string): string {
   return String(num).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
@@ -55,3 +60,40 @@ export const generatePagination = (currentPage: number, totalPages: number) => {
     totalPages,
   ];
 };
+
+// Fonction simple pour formater la date
+export function formatRelativeDate(
+  date: string | Date | null | undefined
+): string | null {
+  if (!date) return null;
+
+  try {
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    const now = new Date();
+    const diffInMs = now.getTime() - dateObj.getTime();
+    const diffInMinutes = Math.floor(diffInMs / 60000);
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInMinutes < 1) return "À l'instant";
+    if (diffInMinutes < 60) return `Il y a ${diffInMinutes} min`;
+    if (diffInHours < 24) return `Il y a ${diffInHours}h`;
+    if (diffInDays === 1) return "Il y a 1 jour";
+    if (diffInDays < 7) return `Il y a ${diffInDays} jours`;
+
+    return dateObj.toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "short",
+    });
+  } catch {
+    return null;
+  }
+}
+
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "XOF",
+    minimumFractionDigits: 0,
+  }).format(amount);
+}

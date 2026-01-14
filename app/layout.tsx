@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Roboto, Montserrat } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import SCIDialaliLogo from "./ui/sci-dialali-logo";
+import { Toaster } from "react-hot-toast";
 
 export const roboto = Roboto({
   weight: ["400", "500", "700"], // Regular, Medium, Bold
@@ -40,6 +42,26 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${roboto.variable} ${montserrat.variable} antialiased`}>
         <Providers>{children}</Providers>
+        <Toaster
+          position="top-center"
+          reverseOrder={false}
+          toastOptions={{
+            success: {
+              style: {
+                background: "#10b981",
+                color: "#fff",
+                fontWeight: "600",
+              },
+            },
+            error: {
+              style: {
+                background: "#ef4444",
+                color: "#fff",
+                fontWeight: "600",
+              },
+            },
+          }}
+        />
       </body>
     </html>
   );

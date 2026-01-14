@@ -1,7 +1,7 @@
 import z from "zod";
 
 const userSchema = z.object({
-  uid: z.string().min(1, "L'ID est requis"),
+  id: z.string().min(1, "L'ID est requis"),
 
   nom: z
     .string()
@@ -17,13 +17,8 @@ const userSchema = z.object({
 
   password: z
     .string()
-    .min(6, "Le mot de passe doit contenir au moins 6 caractères") // La longueur minimale est de 6
-    .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule") // Doit contenir au moins une majuscule
-    .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre")
-    .regex(
-      /[^A-Za-z0-9]/,
-      "Le mot de passe doit contenir au moins un caractère spécial"
-    ),
+    .min(4, "Le mot de passe doit être exactement 4 chiffres.")
+    .regex(/^\d{4}$/, "Le mot de passe doit être exactement 4 chiffres."),
 
   email: z
     .email("L'adresse email n'est pas valide")
@@ -41,33 +36,33 @@ const userSchema = z.object({
     .min(2, "La profession doit contenir au moins 2 caractères")
     .max(50, "La profession ne peut pas dépasser 50 caractères"),
 
-  role: z.enum(["administrateur", "locataire", "locataire potentiel"]),
+  role: z.enum(["administrateur", "locataire", "prospect"]),
 
-  revenu: z.coerce
-    .number("Le revenu doit être un nombre.")
-    .int("Le revenu doit être un entier.")
-    .min(0, "Le revenu ne peut pas être négatif.")
-    .max(999999999, "Le revenu est trop élevé.")
-    .default(0),
+  is_active: z.boolean().default(false),
 
-  disabled: z.boolean().default(false),
-
-  idBienAssocie: z.string().optional(),
   documents: z
     .array(z.url("Chaque document doit être une URL valide"))
     .default([]),
 });
 
 export const createUserSchema = userSchema.omit({
-  uid: true,
-  disabled: true,
-  idBienAssocie: true,
+  id: true,
   role: true,
+  is_active: true,
+  documents: true,
 });
+
+export const loginSchema = userSchema.pick({ contact: true, password: true });
+
+export const updatePasswordSchema = userSchema.pick({ password: true });
 
 export const updateUserSchema = userSchema.omit({ password: true });
 
-export type CreateUserSchema = z.infer<typeof createUserSchema>;
+export type LoginData = z.infer<typeof loginSchema>;
+
+export type UpdatePasswordData = z.infer<typeof createUserSchema>;
+
+export type CreateUserData = z.infer<typeof createUserSchema>;
 
 export type UpdateUserSchema = z.infer<typeof updateUserSchema>;
 
@@ -80,17 +75,17 @@ export const estateSchema = z.object({
     message: "Le type doit être appartement, maison ou bureau",
   }),
 
-  loyerMensuel: z.number().positive("Le loyer mensuel doit être positif"),
+  loyer_mensuel: z.number().positive("Le loyer mensuel doit être positif"),
   rooms: z
     .number()
     .int()
     .positive("Le nombre de chambres doit être un entier positif"),
-  status: z.enum(["disponible", "loué", "reservé"], {
+  status: z.enum(["0", "1", "2"], {
     message: "Le statut doit être disponible, loué ou reservé",
   }),
 
   area: z.number().positive("La superficie doit être positive"),
-  idGestionnaireAssigne: z.string().optional(),
+  id_gestionnaire: z.string().optional(),
   images: z.array(z.url("Chaque image doit être une URL valide")).optional(),
   documents: z
     .array(z.url("Chaque document doit être une URL valide"))
@@ -99,10 +94,12 @@ export const estateSchema = z.object({
 
 export const createEstateSchema = estateSchema.omit({
   id: true,
-  idGestionnaireAssigne: true,
+  id_gestionnaire: true,
   images: true,
   documents: true,
 });
 
-export type EstateUpdateData = z.infer<typeof estateSchema>;
+export type EstateUpdateData = Omit<z.infer<typeof estateSchema>, "status"> & {
+  status: number;
+};
 export type EstateCreateData = z.infer<typeof createEstateSchema>;
