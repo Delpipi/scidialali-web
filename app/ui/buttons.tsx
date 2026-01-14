@@ -49,7 +49,6 @@ export function DeleteUser({ id }: { id: string }) {
   );
 }
 
-
 /*******************************************
  * *************** ESTATE ******************
  *******************************************/
@@ -71,7 +70,8 @@ export function DeleteEstate({ id }: { id: string }) {
     <form action={deleteEstateWithId}>
       <button
         type="submit"
-        className="rounded-md border p-2 hover:bg-primary hover:text-white cursor-pointer"
+        className="inline-flex items-center justify-center font-semibold transition cursor-pointer rounded-sm h-11 px-5
+        border-2 border-primary text-primary hover:text-white hover:bg-primary"
       >
         <TrashIcon className="w-5" />
       </button>

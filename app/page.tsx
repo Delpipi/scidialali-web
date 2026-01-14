@@ -51,6 +51,7 @@ export default async function Home(props: {
         </div>
       </section>
 
+      {/* Properties List */}
       <section className="py-medium">
         <div className="mx-auto px-small max-w-6xl">
           <div>

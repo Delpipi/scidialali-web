@@ -124,3 +124,10 @@ export interface PublicRentalRequest {
   created_at: Date;
   updated_at: Date | null;
 }
+
+export interface PaginatedData {
+  items: any[];
+  total_count: number;
+  page: number;
+  limit: number;
+}

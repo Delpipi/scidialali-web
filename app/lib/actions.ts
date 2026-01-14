@@ -17,6 +17,7 @@ import {
   ApiError,
   ApiResponse,
   DeleteFileResponse,
+  PaginatedData,
   PublicEstate,
   PublicRentalRequest,
   PublicUser,
@@ -26,9 +27,9 @@ import { auth, signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { ITEMS_PER_PAGE } from "./data";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
-const ITEMS_PER_PAGE = 10;
 
 /**************************************
  ************* TYPES STATE ************
@@ -331,14 +332,14 @@ export async function getAllAvailableEstates({
 }) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const estates = await apiRequest<PublicEstate[]>(
+    const result = await apiRequest<PaginatedData>(
       `/api/estates/available?&type=${type}&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`,
       { method: "GET" }
     );
 
     return {
       status: "success",
-      data: estates,
+      data: result,
     };
   } catch (error) {
     console.error("ERREUR GET ALL AVAILABLE ESTATE", error);
@@ -364,22 +365,23 @@ export async function getAllEstates({
 }) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    let url = `/api/estates?type=${type}&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`;
-    if (status !== undefined) {
-      url += `&status=${status}`;
-    }
+    let url = `/api/estates?type=${type}&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}&status=${
+      status || ""
+    }`;
 
-    const estates = await apiRequest<PublicEstate[]>(url);
+    const response = await apiRequest<PaginatedData>(url);
 
     return {
       status: "success",
-      data: estates,
+      data: response,
     };
   } catch (error) {
     console.error("ERREUR GET ALL ESTATE", error);
     const apiError = error as ApiError;
+    console.error(apiError.detail);
     return {
       status: "error",
+
       message: apiError.detail || "Une erreur est survenue.",
       httpStatus: apiError.status,
     };
@@ -538,8 +540,11 @@ export async function getAllUsers({
   if (role !== undefined) {
     url += `&role=${role}`;
   }
-  const users = await apiRequest<PublicUser[]>(url);
-  return users;
+  const response = await apiRequest<PaginatedData>(url);
+  return {
+    status: "success",
+    data: response,
+  };
 }
 
 //GET USER
@@ -747,8 +752,11 @@ export async function getAllRentalRequest({
   if (status !== undefined) {
     url += `&status=${status}`;
   }
-  const rental_requests = await apiRequest<PublicRentalRequest[]>(url);
-  return rental_requests;
+  const response = await apiRequest<PaginatedData>(url);
+  return {
+    status: "success",
+    data: response,
+  };
 }
 
 export async function getRentalRequestById(id: string) {

@@ -4,6 +4,7 @@ import { formatRelativeDate } from "@/app/lib/utils";
 import { Calendar, Home, MapPin, SmartphoneIcon } from "lucide-react";
 import RentalRequestStatus from "./rental-request-status";
 import { DeleteRentalRequest, ViewRentalRequest } from "../buttons";
+import Pagination from "../pagination";
 
 interface TableProps {
   status?: string;
@@ -16,14 +17,14 @@ export default async function RentalRequestTable({
   search,
   currentPage,
 }: TableProps) {
-  let rentalRequests: PublicRentalRequest[];
   const result = await getAllRentalRequest({
     status: status === "" ? undefined : Number(status),
     order_by: "created_at",
     currentPage: currentPage,
   });
 
-  rentalRequests = result || [];
+  const rentalRequests = result.data.items || [];
+  const totalPages = Math.ceil(result.data.total_count / result.data.limit);
 
   const displayData = rentalRequests.filter((request) => {
     if (!search) return true;
@@ -197,6 +198,9 @@ export default async function RentalRequestTable({
               })}
             </tbody>
           </table>
+        </div>
+        <div className="mt-5 flex w-full justify-center">
+          <Pagination totalPages={totalPages} />
         </div>
       </div>
     </div>

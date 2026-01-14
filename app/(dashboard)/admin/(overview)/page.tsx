@@ -90,7 +90,9 @@ function formatRelativeDate(
 
 export default async function Page() {
   const stats = await getAdminStats();
-  const requestList = await getAllRentalRequest({ order_by: "created_at" });
+  const result = await getAllRentalRequest({ order_by: "created_at" });
+
+  const rental_requests = result.data.items || [];
 
   return (
     <main>
@@ -111,10 +113,10 @@ export default async function Page() {
         <h2 className="text-xl font-bold text-slate-800 mb-medium">
           Demande de location
         </h2>
-        {requestList.length === 0 ? (
+        {rental_requests.length === 0 ? (
           <p className="text-sm">Aucune demande</p>
         ) : (
-          requestList.slice(0, 3).map((request: PublicRentalRequest) => {
+          rental_requests.slice(0, 3).map((request: PublicRentalRequest) => {
             const statusConfig = getStatusConfig(request.status);
             const formattedDate = formatRelativeDate(request.created_at);
             const StatusIcon = statusConfig.icon;

@@ -19,7 +19,7 @@ export default async function EditUserPage({
 }) {
   const { id } = await params;
 
-  const [result, users] = await Promise.all([
+  const [estate, result] = await Promise.all([
     getEstate(id),
     getAllUsers({
       role: "administrateur",
@@ -28,7 +28,7 @@ export default async function EditUserPage({
     }),
   ]);
 
-  console.log(result.data?.id_gestionnaire);
+  const users = result.data.items || [];
 
   return (
     <div className="w-full">
@@ -44,7 +44,7 @@ export default async function EditUserPage({
       />
       <div>
         <UpdateEstateForm
-          estate={result.data as PublicEstate}
+          estate={estate.data as PublicEstate}
           gestionnaires={users}
         />
       </div>

@@ -9,7 +9,7 @@ import {
   SmartphoneIcon,
   UserRoundCheck,
 } from "lucide-react";
-import { PublicUser } from "@/app/lib/definitions";
+import Pagination from "../pagination";
 
 export default async function UsersTable({
   search,
@@ -18,11 +18,15 @@ export default async function UsersTable({
   search?: string;
   currentPage: number;
 }) {
-  let users: PublicUser[] = [];
-  users = await getAllUsers({
+  const result = await getAllUsers({
     order_by: "created_at",
     currentPage: currentPage,
   });
+
+  const users = result.data.items || [];
+
+  const totalPages =
+    Math.ceil(result.data.total_count / result.data.limit) || 1;
 
   const displayData = users.filter((user) => {
     if (!search) return true;
@@ -197,6 +201,9 @@ export default async function UsersTable({
               })}
             </tbody>
           </table>
+        </div>
+        <div className="mt-5 flex w-full justify-center">
+          <Pagination totalPages={totalPages} />
         </div>
       </div>
     </div>

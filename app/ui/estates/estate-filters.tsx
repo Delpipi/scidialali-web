@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CreateEstate } from "./buttons";
+import { useSession } from "next-auth/react";
 
 export default function EstateFilters({
   statusInput,
@@ -113,7 +114,8 @@ export default function EstateFilters({
         >
           <i className="fas fa-search mr-2"></i>Rechercher
         </button>
-        <CreateEstate />
+
+        {statusInput && <CreateEstate />}
       </form>
     </div>
   );
