@@ -16,7 +16,6 @@
     "@heroicons/react": "^2.2.0",
     "clsx": "^2.1.1",
     "dataconnect-generated": "link:C:/Users/kolarel/AppData/Local/pnpm/global/5/node_modules/src/dataconnect-generated",
-    "firebase": "^12.6.0",
     "lucide-react": "^0.555.0",
     "next": "16.0.3",
     "next-auth": "5.0.0-beta.30",

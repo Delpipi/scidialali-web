@@ -116,9 +116,10 @@ jobs:
           script: |
             cd /root/projects/scidialali-web
             cat > .env << EOF
-            NEXTAUTH_URL=http://localhost:3002
+            NODE_ENV=production
+            NEXTAUTH_URL=https://uploads.plbsolutions.net
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
-            API_BASE_URL={{ secrets.API_BASE_URL }}
+            API_BASE_URL=${{ secrets.API_BASE_URL }}
             EOF
 
             docker compose pull
