@@ -365,7 +365,7 @@ export async function getAllEstates({
 }) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    let url = `/api/estates?type=${type}&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}&status=${
+    const url = `/api/estates?type=${type}&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}&status=${
       status || ""
     }`;
 

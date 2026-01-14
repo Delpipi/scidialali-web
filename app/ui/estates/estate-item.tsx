@@ -13,7 +13,7 @@ import { PencilIcon } from "lucide-react";
 
 export default function EStateItem({ estate }: { estate: PublicEstate }) {
   const [selectedImage, setSelectedImage] = useState(0);
-  let [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const { data: session, status } = useSession();
 
   return (
