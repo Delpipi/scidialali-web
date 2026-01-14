@@ -10,26 +10,27 @@ import { ApiError } from "@/app/lib/definitions";
  * (compatible erreurs serveur, client, sérialisées)
  */
 function is401Error(error: unknown): boolean {
-  const e = error as any;
+  const e = error as { status?: number; message?: string };
 
   return (
     e?.status === 401 ||
     (e instanceof ApiError && e.status === 401) ||
     e?.message?.includes("401") ||
     e?.message?.toLowerCase?.().includes("unauthorized") ||
-    e?.message?.toLowerCase?.().includes("non authentifié")
+    e?.message?.toLowerCase?.().includes("non authentifié") ||
+    false
   );
 }
 
 function isAccountDisabled(error: unknown): boolean {
-  const e = error as any;
+  const e = error as { status?: number; message?: string };
 
   return (
     e?.status === 403 ||
-    e?.response?.status === 403 ||
     e?.message?.toLowerCase?.().includes("désactivé") ||
     e?.message?.toLowerCase?.().includes("desactive") ||
-    e?.message?.toLowerCase?.().includes("compte a été désactivé")
+    e?.message?.toLowerCase?.().includes("compte a été désactivé") ||
+    false
   );
 }
 

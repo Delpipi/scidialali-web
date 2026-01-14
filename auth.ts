@@ -1,8 +1,7 @@
 import NextAuth, { User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { apiRequest } from "@/app/lib/actions";
-import { ApiError, LoginResponse, PublicUser } from "@/app/lib/definitions";
-import toast from "react-hot-toast";
+import { LoginResponse, PublicUser } from "@/app/lib/definitions";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
@@ -24,7 +23,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           placeholder: "***********",
         },
       },
-      async authorize(credentials, req): Promise<User | null> {
+      async authorize(credentials): Promise<User | null> {
         if (!credentials?.contact || !credentials?.password) {
           return null;
         }

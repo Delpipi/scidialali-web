@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Roboto, Montserrat } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import SCIDialaliLogo from "./ui/sci-dialali-logo";
 import { Toaster } from "react-hot-toast";
 
 export const roboto = Roboto({

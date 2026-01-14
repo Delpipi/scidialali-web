@@ -7,7 +7,6 @@ import {
   updateEstate,
   uploadDocument,
 } from "@/app/lib/actions";
-import Link from "next/link";
 import { PublicEstate, PublicUser } from "@/app/lib/definitions";
 import {
   Upload,
@@ -17,7 +16,6 @@ import {
   Loader,
   Image as ImageIcon,
   Building2Icon,
-  FileIcon,
 } from "lucide-react";
 import toast from "react-hot-toast";
 

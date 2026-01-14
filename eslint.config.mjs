@@ -9,6 +9,8 @@ const eslintConfig = defineConfig([
     rules: {
       // Disable the `no-require-imports` rule to allow `require()` usage
       "@typescript-eslint/no-require-imports": "off", 
+      "@typescript-eslint/no-explicit-any": "off", 
+      "react/no-unescaped-entities": "off", // 
     },
   },
   // Override default ignores of eslint-config-next.

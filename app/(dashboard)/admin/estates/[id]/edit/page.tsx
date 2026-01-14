@@ -8,8 +8,6 @@ export const metadata: Metadata = {
 import { getAllUsers, getEstate } from "@/app/lib/actions";
 import Breadcrumbs from "@/app/ui/breadcrumbs";
 import UpdateEstateForm from "@/app/ui/estates/update-estate-form";
-import { Suspense } from "react";
-import ListLoader from "@/app/ui/loader";
 import { PublicEstate } from "@/app/lib/definitions";
 
 export default async function EditUserPage({

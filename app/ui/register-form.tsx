@@ -42,7 +42,7 @@ export default function RegistrationForm() {
         window.location.replace("/login");
       }, 1000);
     }
-  }, [state.message]);
+  }, [state]);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormValues({
       ...formValues,
@@ -52,7 +52,7 @@ export default function RegistrationForm() {
   return (
     <div className="flex-1 rounded-lg bg-gray-50 px-6 pb-4 pt-8">
       <form className="space-y-3" action={formAction}>
-        <h1 className="mb-3 text-2xl">S'inscrire</h1>
+        <h1 className="mb-3 text-2xl">{"S'inscrire"}</h1>
         <div className="w-full">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
             {/* Nom */}

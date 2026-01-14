@@ -1,6 +1,5 @@
 import RentalRequestTable from "@/app/ui/rental_requests/rental-request-table";
 import RentalRequestFilters from "@/app/ui/rental_requests/rental-requests-filters";
-import Table from "@/app/ui/users/users-table";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

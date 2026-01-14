@@ -1,7 +1,7 @@
 import { getAllUsers } from "@/app/lib/actions";
 import UserStatus from "./user-status";
 import { DeleteUser, UpdateUser } from "../buttons";
-import { formatDateToLocal, formatRelativeDate } from "@/app/lib/utils";
+import { formatRelativeDate } from "@/app/lib/utils";
 import {
   BriefcaseBusiness,
   Calendar,

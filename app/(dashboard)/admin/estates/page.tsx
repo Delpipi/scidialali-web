@@ -1,9 +1,5 @@
-import { CreateEstate } from "@/app/ui/estates/buttons";
 import EStatesList from "@/app/ui/estates/estate-list";
 import FilterItems from "@/app/ui/estates/estate-filters";
-import Search from "@/app/ui/search";
-import { CreateUser } from "@/app/ui/buttons";
-import Table from "@/app/ui/users/users-table";
 import { Metadata } from "next";
 import { Suspense } from "react";
 import ListLoader from "@/app/ui/loader";

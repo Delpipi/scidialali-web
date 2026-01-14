@@ -1,9 +1,7 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import Link from "next/link";
 import { LinkButton } from "./button";
-import { LogInIcon, PowerIcon } from "lucide-react";
+import { LogInIcon } from "lucide-react";
 
 export function HeaderNav({ user }: { user: any }) {
   const getDashboardLink = () => {
