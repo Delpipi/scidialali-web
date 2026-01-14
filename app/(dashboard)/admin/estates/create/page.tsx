@@ -20,7 +20,7 @@ export default async function Page() {
         ]}
       />
       <div>
-        <CreateEstateForm gestionnaires={[]} />
+        <CreateEstateForm />
       </div>
     </div>
   );
