@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { createEstate } from "@/app/lib/actions";
-import { User } from "firebase/auth";
 import {
   BanknotesIcon,
   BuildingOffice2Icon,
@@ -14,11 +13,7 @@ import { Building2Icon, CircleCheck } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-export default function CreateEstateForm({
-  gestionnaires,
-}: {
-  gestionnaires: User[];
-}) {
+export default function CreateEstateForm() {
   const [formValues, setFormValues] = useState({
     titre: "",
     adresse: "",
