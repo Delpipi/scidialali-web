@@ -1,6 +1,3 @@
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
-
-overrides:
-  dataconnect-generated: link:C:/Users/kolarel/AppData/Local/pnpm/global/5/node_modules/src/dataconnect-generated
