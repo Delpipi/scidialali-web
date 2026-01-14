@@ -20,9 +20,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      dataconnect-generated:
-        specifier: link:C:/Users/kolarel/AppData/Local/pnpm/global/5/node_modules/src/dataconnect-generated
-        version: link:C:/Users/kolarel/AppData/Local/pnpm/global/5/node_modules/src/dataconnect-generated
       lucide-react:
         specifier: ^0.555.0
         version: 0.555.0(react@19.2.0)
