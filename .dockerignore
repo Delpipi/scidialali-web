@@ -1,0 +1,39 @@
+# Ignorer le dossier des dépendances de Node.js, car elles sont gérées par le build multi-stage
+
+# --------------------
+# Dépendances Node.js
+# --------------------
+node_modules
+
+# --------------------
+# Dossiers de Build
+# --------------------
+.next
+out
+
+# --------------------
+# Fichiers Temporaires et d'Environnement
+# --------------------
+.env
+.env.local
+.env.development
+.env.production
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+pnpm-debug.log
+.pnpm-store
+
+# --------------------
+# Fichiers de Versionnement et d'Éditeur
+# --------------------
+.git
+.gitignore
+.editorconfig
+.vscode
+
+# --------------------
+# Fichiers Docker
+# --------------------
+Dockerfile
+docker-compose.yml
