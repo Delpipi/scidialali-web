@@ -2,7 +2,7 @@
 
 import { PublicEstate } from "@/app/lib/definitions";
 import Image from "next/image";
-import { DeleteEstate, UpdateEstate } from "../users/buttons";
+import { DeleteEstate, UpdateEstate } from "../buttons";
 import { groupByThree } from "@/app/lib/utils";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useState } from "react";
@@ -65,12 +65,13 @@ export default function EStateItem({ estate }: { estate: PublicEstate }) {
             </p>
           </div>
         </div>
-        {session && session.user.role === "administrateur" ? (
+        {session && session.user.role === "administrateur" && (
           <div className="flex justify-end space-x-2">
-            <UpdateEstate id={estate.id as string} />
-            <DeleteEstate id={estate.id as string} />
+            <UpdateEstate id={estate.id} />
+            <DeleteEstate id={estate.id} />
           </div>
-        ) : (
+        )}
+        {session && session.user.role !== "administrateur" && (
           <div>
             <LinkButton className="w-full "> Louer</LinkButton>
           </div>
@@ -146,31 +147,6 @@ export default function EStateItem({ estate }: { estate: PublicEstate }) {
                   </p>
                 </div>
               </div>
-
-              {/* <div className="mb-6">
-                <h3 className="text-xl font-bold text-gray-800 mb-3">
-                  Équipements
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center text-gray-700">
-                    <i className="fas fa-check-circle text-green-600 mr-2"></i>
-                    <span>Cuisine équipée</span>
-                  </div>
-                  <div className="flex items-center text-gray-700">
-                    <i className="fas fa-check-circle text-green-600 mr-2"></i>
-                    <span>Balcon</span>
-                  </div>
-                  <div className="flex items-center text-gray-700">
-                    <i className="fas fa-check-circle text-green-600 mr-2"></i>
-                    <span>Parking</span>
-                  </div>
-                  <div className="flex items-center text-gray-700">
-                    <i className="fas fa-check-circle text-green-600 mr-2"></i>
-                    <span>Ascenseur</span>
-                  </div>
-                </div>
-              </div> */}
-
               <div className="flex justify-end">
                 <button
                   onClick={() => setIsOpen(false)}

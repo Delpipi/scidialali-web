@@ -30,7 +30,6 @@ export interface PublicUser extends User {
  * ********** ESTATE ********
  ****************************/
 export interface Estate {
-  id: string | null;
   titre: string;
   adresse: string;
   type: "appartement" | "maison" | "bureau";
@@ -40,9 +39,28 @@ export interface Estate {
   area: number;
 }
 
-export interface PublicEstate extends Estate {
+export interface CreateEstate extends Estate {
   images: string[] | [];
   documents: string[] | [];
+}
+
+export interface UpdateEstate {
+  id: string;
+  titre?: string | null;
+  adresse?: string | null;
+  type: "appartement" | "maison" | "bureau";
+  status: 0 | 1 | 2;
+  loyer_mensuel?: number | null;
+  rooms?: number | null;
+  area?: number | null;
+  images?: string[] | [];
+  documents?: string[] | [];
+  id_gestionnaire?: string | null;
+  id_locataire?: string | null;
+}
+
+export interface PublicEstate extends CreateEstate {
+  id: string;
   id_gestionnaire: string | null;
   id_locataire: string | null;
   created_at: Date;

@@ -15,7 +15,7 @@ export default async function Page(props: {
   }>;
 }) {
   const seachParams = await props.searchParams;
-  const status = Number(seachParams?.status) || 0;
+  const status = seachParams?.status || "";
   const search = seachParams?.search || "";
   const currentPage = Number(seachParams?.page) || 1;
   return (

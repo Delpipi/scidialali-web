@@ -5,9 +5,12 @@ export const metadata: Metadata = {
 };
 
 // Import des actions serveur
-import { getEstate } from "@/app/lib/actions";
+import { getAllUsers, getEstate } from "@/app/lib/actions";
 import Breadcrumbs from "@/app/ui/breadcrumbs";
 import UpdateEstateForm from "@/app/ui/estates/update-estate-form";
+import { Suspense } from "react";
+import ListLoader from "@/app/ui/loader";
+import { PublicEstate } from "@/app/lib/definitions";
 
 export default async function EditUserPage({
   params,
@@ -16,13 +19,16 @@ export default async function EditUserPage({
 }) {
   const { id } = await params;
 
-  let estate;
+  const [result, users] = await Promise.all([
+    getEstate(id),
+    getAllUsers({
+      role: "administrateur",
+      order_by: "created_at",
+      currentPage: 1,
+    }),
+  ]);
 
-  try {
-    estate = await getEstate(id);
-  } catch (error) {
-    console.error("Erreur lors du chargement:", error);
-  }
+  console.log(result.data?.id_gestionnaire);
 
   return (
     <div className="w-full">
@@ -37,13 +43,10 @@ export default async function EditUserPage({
         ]}
       />
       <div>
-        {estate?.user ? (
-          <UpdateEstateForm estate={estate.user} gestionnaires={[]} />
-        ) : (
-          <div className="text-center">
-            <p className="text-gray-600">Chargement...</p>
-          </div>
-        )}
+        <UpdateEstateForm
+          estate={result.data as PublicEstate}
+          gestionnaires={users}
+        />
       </div>
     </div>
   );

@@ -7,6 +7,9 @@ import { PencilIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { EyeIcon } from "lucide-react";
 import Link from "next/link";
 
+/*******************************************
+ * *************** USER ********************
+ *******************************************/
 export function CreateUser() {
   return (
     <Link
@@ -46,10 +49,15 @@ export function DeleteUser({ id }: { id: string }) {
   );
 }
 
+
+/*******************************************
+ * *************** ESTATE ******************
+ *******************************************/
+
 export function UpdateEstate({ id }: { id: string }) {
   return (
     <Link
-      href={`/dashboard/estates/${id}/edit`}
+      href={`/admin/estates/${id}/edit`}
       className="rounded-md border p-2 hover:bg-primary hover:text-white"
     >
       <PencilIcon className="w-5" />

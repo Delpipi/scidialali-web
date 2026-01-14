@@ -75,17 +75,17 @@ export const estateSchema = z.object({
     message: "Le type doit être appartement, maison ou bureau",
   }),
 
-  loyerMensuel: z.number().positive("Le loyer mensuel doit être positif"),
+  loyer_mensuel: z.number().positive("Le loyer mensuel doit être positif"),
   rooms: z
     .number()
     .int()
     .positive("Le nombre de chambres doit être un entier positif"),
-  status: z.enum(["disponible", "loué", "reservé"], {
+  status: z.enum(["0", "1", "2"], {
     message: "Le statut doit être disponible, loué ou reservé",
   }),
 
   area: z.number().positive("La superficie doit être positive"),
-  idGestionnaireAssigne: z.string().optional(),
+  id_gestionnaire: z.string().optional(),
   images: z.array(z.url("Chaque image doit être une URL valide")).optional(),
   documents: z
     .array(z.url("Chaque document doit être une URL valide"))
@@ -94,10 +94,12 @@ export const estateSchema = z.object({
 
 export const createEstateSchema = estateSchema.omit({
   id: true,
-  idGestionnaireAssigne: true,
+  id_gestionnaire: true,
   images: true,
   documents: true,
 });
 
-export type EstateUpdateData = z.infer<typeof estateSchema>;
+export type EstateUpdateData = Omit<z.infer<typeof estateSchema>, "status"> & {
+  status: number;
+};
 export type EstateCreateData = z.infer<typeof createEstateSchema>;

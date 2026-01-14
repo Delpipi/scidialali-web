@@ -1,6 +1,6 @@
 import { getRentalRequestById } from "@/app/lib/actions";
 import { notFound } from "next/navigation";
-import RequestDetailPage from "./request-detail-page";
+import RequestDetailPage from "../../../../ui/rental_requests/request-detail-page";
 
 export const metadata = {
   title: "Détail de la demande",

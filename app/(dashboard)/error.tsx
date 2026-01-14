@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { signOut } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { ApiError } from "./lib/definitions";
+import { ApiError } from "@/app/lib/definitions";
 
 /**
  * Détection robuste d'une erreur 401
@@ -35,7 +35,6 @@ function isAccountDisabled(error: unknown): boolean {
 
 export default function Error({
   error,
-  reset,
 }: {
   error: Error & { status?: number; digest?: string };
   reset: () => void;
@@ -57,11 +56,15 @@ export default function Error({
     });
   }, [is401, callbackUrl]);
 
+  const reset = () => {
+    window.location.replace(callbackUrl); // Redirection après réinitialisation
+  };
+
   // UX minimale pendant la redirection
   if (is401) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center p-8 bg-white rounded-xl">
+        <div className="text-center p-8 bg-white rounded-md">
           <div className="text-7xl mb-6">🔐</div>
           <h1 className="text-2xl font-bold text-gray-800 mb-4">
             Session expirée
@@ -77,7 +80,7 @@ export default function Error({
   if (isDisabled) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center max-w-md p-8 bg-white rounded-xl">
+        <div className="text-center max-w-md p-8 bg-white rounded-md">
           <div className="text-7xl mb-6">⛔</div>
           <h1 className="text-2xl font-bold text-gray-800 mb-4">
             Compte désactivé
@@ -101,7 +104,7 @@ export default function Error({
   // Autres erreurs
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center max-w-md p-8 bg-white rounded-xl">
+      <div className="text-center max-w-md p-8 bg-white rounded-md">
         <h1 className="text-2xl font-bold text-red-600 mb-4">
           Une erreur est survenue
         </h1>
@@ -110,7 +113,7 @@ export default function Error({
         </p>
         <button
           onClick={reset}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="px-6 py-2 bg-primary text-white rounded-md cursor-pointer"
         >
           Réessayer
         </button>

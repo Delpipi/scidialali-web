@@ -77,10 +77,7 @@ export default function RequestDetailPage({
     setIsLoading(true);
     try {
       const message = await approveRentalRequest(request.id, adminNotes);
-      toast.success(message as string, {
-        duration: 4000,
-        icon: "✅",
-      });
+      toast.success(message as string);
       setIsApproveModalOpen(false);
       setTimeout(() => {
         router.push("/admin/demandes");

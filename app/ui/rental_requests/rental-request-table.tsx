@@ -3,10 +3,10 @@ import { PublicRentalRequest } from "@/app/lib/definitions";
 import { formatRelativeDate } from "@/app/lib/utils";
 import { Calendar, Home, MapPin, SmartphoneIcon } from "lucide-react";
 import RentalRequestStatus from "./rental-request-status";
-import { DeleteRentalRequest, ViewRentalRequest } from "../users/buttons";
+import { DeleteRentalRequest, ViewRentalRequest } from "../buttons";
 
 interface TableProps {
-  status?: number;
+  status?: string;
   search?: string;
   currentPage?: number;
 }
@@ -18,7 +18,7 @@ export default async function RentalRequestTable({
 }: TableProps) {
   let rentalRequests: PublicRentalRequest[];
   const result = await getAllRentalRequest({
-    status: status,
+    status: status === "" ? undefined : Number(status),
     order_by: "created_at",
     currentPage: currentPage,
   });

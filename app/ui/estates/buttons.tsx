@@ -1,16 +1,13 @@
 import { PencilIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { LinkButton } from "../button";
 
 export function CreateEstate() {
   return (
-    <Link
-      href="/dashboard/estates/create"
-      className="flex h-10 items-center justify-between rounded-lg bg-primary px-small text-sm font-medium py-2 
-       text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-    >
-      Ajouter un bien
+    <LinkButton href="/admin/estates/create">
+      Ajouter
       <PlusIcon className="h-5 md:ml-4" />
-    </Link>
+    </LinkButton>
   );
 }
 

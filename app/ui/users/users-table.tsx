@@ -1,6 +1,6 @@
 import { getAllUsers } from "@/app/lib/actions";
 import UserStatus from "./user-status";
-import { DeleteUser, UpdateUser } from "./buttons";
+import { DeleteUser, UpdateUser } from "../buttons";
 import { formatDateToLocal, formatRelativeDate } from "@/app/lib/utils";
 import {
   BriefcaseBusiness,
@@ -19,7 +19,10 @@ export default async function UsersTable({
   currentPage: number;
 }) {
   let users: PublicUser[] = [];
-  users = await getAllUsers(currentPage);
+  users = await getAllUsers({
+    order_by: "created_at",
+    currentPage: currentPage,
+  });
 
   const displayData = users.filter((user) => {
     if (!search) return true;

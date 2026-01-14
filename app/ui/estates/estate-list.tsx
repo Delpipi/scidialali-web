@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { PublicEstate } from "@/app/lib/definitions";
 
 interface EstateListProps {
-  status?: number;
+  status?: string;
   type?: string;
   minRent?: number;
   maxRent?: number;
@@ -26,6 +26,7 @@ export default async function EStatesList({
   if (!session?.user) {
     const result = await getAllAvailableEstates({
       type: type,
+      order_by: "created_at",
       currentPage: currentPage,
     });
     estates = result?.data || [];
@@ -33,8 +34,9 @@ export default async function EStatesList({
 
   if (session?.user && session.user.role === "administrateur") {
     const result = await getAllEstates({
-      status: status,
+      status: status === "" ? undefined : Number(status),
       type: type,
+      order_by: "created_at",
       currentPage: currentPage,
     });
     estates = result?.data || [];

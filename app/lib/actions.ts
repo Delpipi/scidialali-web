@@ -25,6 +25,7 @@ import {
 import { auth, signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
 const ITEMS_PER_PAGE = 10;
@@ -293,7 +294,6 @@ export async function register(
 
   const userData: CreateUserData = validateFields.data;
 
-
   try {
     const result = await apiRequest<ApiResponse>("/api/auth/signup", {
       method: "POST",
@@ -321,13 +321,18 @@ export async function register(
 
 //============== GET ALL ESTATE ================
 export async function getAllAvailableEstates({
-  type = "",
+  type,
+  order_by,
   currentPage = 1,
-} = {}) {
+}: {
+  type?: string;
+  order_by: string;
+  currentPage?: number;
+}) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
     const estates = await apiRequest<PublicEstate[]>(
-      `/api/estates/available?type=${type}&limit=${ITEMS_PER_PAGE}&offset=${offset}`,
+      `/api/estates/available?&type=${type}&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`,
       { method: "GET" }
     );
 
@@ -347,16 +352,24 @@ export async function getAllAvailableEstates({
 }
 
 export async function getAllEstates({
-  status = 0,
-  type = "",
+  status,
+  type,
+  order_by,
   currentPage = 1,
-} = {}) {
+}: {
+  status?: number;
+  type?: string;
+  order_by: string;
+  currentPage?: number;
+}) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const estates = await apiRequest<PublicEstate[]>(
-      `/api/estates?status=${status}&type=${type}&limit=${ITEMS_PER_PAGE}&offset=${offset}`,
-      { method: "GET" }
-    );
+    let url = `/api/estates?type=${type}&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`;
+    if (status !== undefined) {
+      url += `&status=${status}`;
+    }
+
+    const estates = await apiRequest<PublicEstate[]>(url);
 
     return {
       status: "success",
@@ -411,6 +424,7 @@ export async function createEstate(
   });
 
   if (!validateFields.success) {
+    console.error(validateFields.error.flatten().fieldErrors);
     return {
       status: "error",
       message: "Veuillez corriger les erreurs de validation.",
@@ -425,12 +439,6 @@ export async function createEstate(
       method: "POST",
       body: JSON.stringify(estateData),
     });
-
-    return {
-      status: "success",
-      message: result.message,
-      data: result,
-    };
   } catch (error) {
     console.error("ERREUR CREATE ESTATE", error);
     const apiError = error as ApiError;
@@ -440,6 +448,9 @@ export async function createEstate(
       httpStatus: apiError.status,
     };
   }
+
+  revalidatePath("/admin/estates");
+  redirect("/admin/estates");
 }
 
 //UPDATE ESTATE
@@ -468,7 +479,10 @@ export async function updateEstate(formData: FormData) {
       };
     }
 
-    const estateData: EstateUpdateData = validateFields.data;
+    const estateData: EstateUpdateData = {
+      ...validateFields.data,
+      status: parseInt(validateFields.data.status, 10), // convert string to number
+    };
 
     const result = await apiRequest<ApiResponse>(
       `/api/estates/${estateData.id}`,
@@ -497,20 +511,10 @@ export async function deleteEstate(id: string) {
     const result = await apiRequest<ApiResponse>(`/api/estates/${id}`, {
       method: "DELETE",
     });
-
-    return {
-      status: "success",
-      message: result.message,
-      data: result,
-    };
   } catch (error) {
     console.error("ERREUR DELETE ESTATE", error);
     const apiError = error as ApiError;
-    return {
-      status: "error",
-      message: apiError.detail || "Une erreur est survenue",
-      httpStatus: apiError.status,
-    };
+    throw apiError;
   }
 }
 
@@ -519,11 +523,22 @@ export async function deleteEstate(id: string) {
  ***********************************************/
 
 //GET ALL USER
-export async function getAllUsers(currentPage: number) {
+export async function getAllUsers({
+  role,
+  order_by,
+  currentPage,
+}: {
+  role?: string;
+  order_by: string;
+  currentPage: number;
+}) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-  const users = await apiRequest<PublicUser[]>(
-    `/api/users?limit=${ITEMS_PER_PAGE}&offset=${offset}`
-  );
+
+  let url = `/api/users?limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`;
+  if (role !== undefined) {
+    url += `&role=${role}`;
+  }
+  const users = await apiRequest<PublicUser[]>(url);
   return users;
 }
 
@@ -589,20 +604,10 @@ export async function deleteUser(id: string) {
     const result = await apiRequest<ApiResponse>(`/api/users/${id}`, {
       method: "DELETE",
     });
-
-    return {
-      status: "success",
-      message: result.message,
-      data: result,
-    };
   } catch (error) {
     console.error("ERREUR DELETE USER", error);
     const apiError = error as ApiError;
-    return {
-      status: "error",
-      message: apiError.detail || "Une erreur est survenue",
-      httpStatus: apiError.status,
-    };
+    throw apiError;
   }
 }
 

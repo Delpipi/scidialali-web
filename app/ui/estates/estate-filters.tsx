@@ -1,8 +1,13 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { CreateEstate } from "./buttons";
 
-export default function EstateFilters() {
+export default function EstateFilters({
+  statusInput,
+}: {
+  statusInput?: boolean;
+}) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
@@ -58,15 +63,18 @@ export default function EstateFilters() {
         onSubmit={handleFilter}
         className="flex flex-col md:flex-row justify-evenly gap-xsmall"
       >
-        {/* <select
-          name="status"
-          className="border border-gray-300  px-4 py-2 inline-block"
-        >
-          <option value="">Tous les statuts</option>
-          <option value="0">Disponible</option>
-          <option value="1">Loué</option>
-          <option value="2">Réservé</option>
-        </select> */}
+        {statusInput && (
+          <select
+            name="status"
+            className="border border-gray-300  px-4 py-2 inline-block"
+          >
+            <option value="">Tous les statuts</option>
+            <option value="0">Disponible</option>
+            <option value="1">Loué</option>
+            <option value="2">Réservé</option>
+          </select>
+        )}
+
         <select
           name="type"
           className="w-full px-4 py-2  border border-gray-300  outline-none rounded-sm"
@@ -105,6 +113,7 @@ export default function EstateFilters() {
         >
           <i className="fas fa-search mr-2"></i>Rechercher
         </button>
+        <CreateEstate />
       </form>
     </div>
   );

@@ -7,14 +7,12 @@ import {
   updateUser,
   uploadDocument,
 } from "@/app/lib/actions";
-import Link from "next/link";
+
 import { Estate, PublicUser, UpdateUser, User } from "@/app/lib/definitions";
 import {
   Upload,
   X,
   FileText,
-  CheckCircle,
-  AlertCircle,
   Loader,
   Lock,
   Eye,
@@ -23,9 +21,6 @@ import {
   MailIcon,
   PhoneIcon,
   BriefcaseIcon,
-  Banknote,
-  BanknoteIcon,
-  DockIcon,
   LockIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -158,7 +153,7 @@ export default function UpdateUserForm({ user }: { user: PublicUser }) {
   const handleDeleteDocument = async (docUrl: string) => {
     try {
       // Appel direct à l'API FastAPI
-      const response = await await deleteDocument(
+      const response = await deleteDocument(
         user.id,
         [docUrl],
         "user_documents"
