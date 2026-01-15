@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "uploads.plbsolutions.net",
         port: "",
-        pathname: "/uploads/**",
+        pathname: "/**",
       },
       // 2. Unsplash
       {
