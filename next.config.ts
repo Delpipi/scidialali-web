@@ -15,6 +15,19 @@ const nextConfig: NextConfig = {
         port: "8000",
         pathname: "/uploads/**",
       },
+      {
+        protocol: "https",
+        hostname: "uploads.plbsolutions.net",
+        port: "",
+        pathname: "/uploads/**",
+      },
+      // 2. Unsplash
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
     dangerouslyAllowSVG: true,
     unoptimized: process.env.NODE_ENV === "development", // Optional: speeds up dev

@@ -113,7 +113,7 @@ jobs:
             cd /root/projects/scidialali-web
             cat > .env << EOF
             NODE_ENV=production
-            NEXTAUTH_URL=https://uploads.plbsolutions.net
+            NEXTAUTH_URL=https://api.plbsolutions.net
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
             API_BASE_URL=${{ secrets.API_BASE_URL }}
             EOF
