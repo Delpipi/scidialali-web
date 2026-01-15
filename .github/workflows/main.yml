@@ -117,6 +117,7 @@ jobs:
             NEXTAUTH_URL=https://api.plbsolutions.net
             AUTH_TRUST_HOST=true
             NEXT_PUBLIC_API_URL=${{ secrets.API_BASE_URL }}
+            NEXT_PUBLIC_API_BASE_URL=${{ secrets.API_BASE_URL }}
             NODE_ENV=production
             EOF
 
