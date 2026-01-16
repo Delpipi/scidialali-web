@@ -10,7 +10,7 @@ declare module "next-auth" {
       email: string;
       contact: string;
       profession: string;
-      role: "administrateur" | "locataire" | "prospect";
+      role: "admin" | "locataire" | "prospect";
       is_active: boolean;
     };
   }

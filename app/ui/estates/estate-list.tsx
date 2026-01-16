@@ -25,7 +25,9 @@ export default async function EStatesList({
   let estates: PublicEstate[] = [];
   let totalPages = 1;
 
-  if (!session?.user) {
+  const userRole = session?.user ? session.user.role : "";
+
+  if (!userRole || (userRole && userRole !== "administrateur")) {
     const result = await getAllAvailableEstates({
       type: type,
       order_by: "created_at",
@@ -37,7 +39,7 @@ export default async function EStatesList({
     totalPages = Math.ceil(total_count / limit);
   }
 
-  if (session?.user && session.user.role === "administrateur") {
+  if (userRole && userRole === "administrateur") {
     const result = await getAllEstates({
       status: Number(status) || 0,
       type: type,
@@ -77,7 +79,7 @@ export default async function EStatesList({
     <>
       <div className="grid grid-cols-1 pb-small md:grid-cols-2 lg:grid-cols-3 gap-small">
         {displayData.map((estate) => (
-          <EStateItem key={estate.id} estate={estate} />
+          <EStateItem key={estate.id} estate={estate} userRole={userRole} />
         ))}
       </div>
       <div className="mt-5 flex w-full justify-center">

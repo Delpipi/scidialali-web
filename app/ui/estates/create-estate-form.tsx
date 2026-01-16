@@ -46,7 +46,7 @@ export default function CreateEstateForm() {
 
   return (
     <div className="min-h-screen from-slate-50 to-slate-100 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="space-y-6">
         {/* En-tête */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-800">Bien Immobilier</h1>
@@ -81,7 +81,7 @@ export default function CreateEstateForm() {
                       onChange={handleChange}
                       className="px-large py-xsmall bg-gray-100 outline-2 outline-gray-600 rounded-sm w-full placeholder-gray-500"
                     />
-                    <H1Icon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                    <H1Icon className="pointer-events-none absolute left-3 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-gray-500" />
                   </div>
                   <div id="titre-error" aria-live="polite" aria-atomic="true">
                     {state?.fieldErrors?.titre &&
@@ -112,7 +112,7 @@ export default function CreateEstateForm() {
                       onChange={handleChange}
                       className="px-large py-xsmall bg-gray-100 outline-2 outline-gray-600 rounded-sm w-full placeholder-gray-500"
                     />
-                    <MapIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                    <MapIcon className="pointer-events-none absolute left-3 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-gray-500" />
                   </div>
                   <div id="adresse-error" aria-live="polite" aria-atomic="true">
                     {state?.fieldErrors?.adresse &&
@@ -144,7 +144,7 @@ export default function CreateEstateForm() {
                       <option value="maison">Maison</option>
                       <option value="bureau">Bureau</option>
                     </select>
-                    <BuildingOffice2Icon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                    <BuildingOffice2Icon className="pointer-events-none absolute left-3 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-gray-500" />
                   </div>
                   <div id="type-error" aria-live="polite" aria-atomic="true">
                     {state?.fieldErrors?.type &&
@@ -175,7 +175,7 @@ export default function CreateEstateForm() {
                       onChange={handleChange}
                       className="px-large py-xsmall bg-gray-100 outline-2 outline-gray-600 rounded-sm w-full placeholder-gray-500"
                     />
-                    <BanknotesIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                    <BanknotesIcon className="pointer-events-none absolute left-3 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-gray-500" />
                   </div>
                   <div
                     id="loyerMensuel-error"
@@ -210,7 +210,7 @@ export default function CreateEstateForm() {
                       onChange={handleChange}
                       className="px-large py-xsmall bg-gray-100 outline-2 outline-gray-600 rounded-sm w-full placeholder-gray-500"
                     />
-                    <BuildingOfficeIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                    <BuildingOfficeIcon className="pointer-events-none absolute left-3 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-gray-500" />
                   </div>
                   <div id="rooms-error" aria-live="polite" aria-atomic="true">
                     {state?.fieldErrors?.rooms &&
@@ -242,7 +242,7 @@ export default function CreateEstateForm() {
                       <option value="1">Loué</option>
                       <option value="2">Réservé</option>
                     </select>
-                    <CircleCheck className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                    <CircleCheck className="pointer-events-none absolute left-3 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-gray-500" />
                   </div>
                   <div id="status-error" aria-live="polite" aria-atomic="true">
                     {state?.fieldErrors?.status &&
@@ -272,7 +272,7 @@ export default function CreateEstateForm() {
                       onChange={handleChange}
                       className="px-large py-xsmall bg-gray-100 outline-2 outline-gray-600 rounded-sm w-full placeholder-gray-500"
                     />
-                    <MapIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+                    <MapIcon className="pointer-events-none absolute left-3 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-gray-500" />
                   </div>
                   <div id="area-error" aria-live="polite" aria-atomic="true">
                     {state?.fieldErrors?.area &&

@@ -15,7 +15,6 @@ import {
   Ruler,
   FileText,
   Image as ImageIcon,
-  ArrowLeft,
   Check,
   X,
   Loader2,
@@ -28,6 +27,7 @@ import { formatCurrency, formatRelativeDate } from "@/app/lib/utils";
 import RentalRequestStatus from "@/app/ui/rental_requests/rental-request-status";
 import Breadcrumbs from "@/app/ui/breadcrumbs";
 import { approveRentalRequest, rejectedRentalRequest } from "@/app/lib/actions";
+import { useSession } from "next-auth/react";
 
 // Composant Modal
 function Modal({
@@ -72,6 +72,8 @@ export default function RequestDetailPage({
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [adminNotes, setAdminNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const { data: session, status } = useSession();
 
   const handleApprove = async () => {
     setIsLoading(true);
@@ -226,21 +228,8 @@ export default function RequestDetailPage({
         </div>
       </Modal>
 
-      <main className="min-h-screen  p-6">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <div className="flex items-center gap-4">
-            <Breadcrumbs
-              breadcrumbs={[
-                { label: "Demandes", href: "/admin/rental_requests" },
-                {
-                  label: "Détail de la demande",
-                  href: `/admin/rental_requests/${request.id}`,
-                  active: true,
-                },
-              ]}
-            />
-          </div>
-
+      <div className="min-h-screen from-slate-50 to-slate-100 p-4 md:p-8">
+        <div className="space-y-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-slate-800">Demande</h1>
@@ -503,31 +492,33 @@ export default function RequestDetailPage({
               </div>
 
               {/* Actions */}
-              {request.status === 0 && (
-                <div className="bg-white rounded-sm  border border-slate-200 overflow-hidden">
-                  <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
-                    <h2 className="text-lg font-semibold text-slate-800">
-                      Actions
-                    </h2>
+              {status === "authenticated" &&
+                session.user.role === "administrateur" &&
+                request.status === 0 && (
+                  <div className="bg-white rounded-sm  border border-slate-200 overflow-hidden">
+                    <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
+                      <h2 className="text-lg font-semibold text-slate-800">
+                        Actions
+                      </h2>
+                    </div>
+                    <div className="p-6 space-y-3">
+                      <button
+                        onClick={() => setIsApproveModalOpen(true)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-colors"
+                      >
+                        <Check className="w-5 h-5" />
+                        Approuver
+                      </button>
+                      <button
+                        onClick={() => setIsRejectModalOpen(true)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-lg transition-colors"
+                      >
+                        <X className="w-5 h-5" />
+                        Refuser
+                      </button>
+                    </div>
                   </div>
-                  <div className="p-6 space-y-3">
-                    <button
-                      onClick={() => setIsApproveModalOpen(true)}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-colors"
-                    >
-                      <Check className="w-5 h-5" />
-                      Approuver
-                    </button>
-                    <button
-                      onClick={() => setIsRejectModalOpen(true)}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-lg transition-colors"
-                    >
-                      <X className="w-5 h-5" />
-                      Refuser
-                    </button>
-                  </div>
-                </div>
-              )}
+                )}
 
               {/* Documents */}
               {request.estate?.documents &&
@@ -565,7 +556,7 @@ export default function RequestDetailPage({
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </>
   );
 }

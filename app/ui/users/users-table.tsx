@@ -100,7 +100,7 @@ export default async function UsersTable({
                     </div>
                     <UserStatus status={user.is_active} />
                   </div>
-                  <div className="flex justify-end gap-2">
+                  <div className="flex justify-end gap-2 mt-small">
                     <UpdateUser id={user.id} />
                     <DeleteUser id={user.id} />
                   </div>

@@ -32,7 +32,7 @@ export default async function EditUserPage({
     <div className="w-full">
       <Breadcrumbs
         breadcrumbs={[
-          { label: "Utiliseurs", href: "/dashboard/users" },
+          { label: "Bien immobiliers", href: "/admin/estates" },
           {
             label: "Modifier le bien immobilier",
             href: `/dashboard/estates/${id}/edit`,

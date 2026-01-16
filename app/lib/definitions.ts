@@ -1,3 +1,27 @@
+/********************************
+ ************* STATS ************
+ ********************************/
+export type AdminStats = {
+  total_users: number;
+  active_tenants: number;
+  available_estates: number;
+  rented_estates: number;
+  pending_requests: number;
+  unread_messages: number;
+  pending_payments: number;
+  late_payments: number;
+};
+
+export type ProspectStats = {
+  available_estates: number;
+  pending_requests: number;
+  reject_rented_estates: number;
+};
+
+/********************************
+ ************* USERS ************
+ ********************************/
+
 export interface User {
   nom: string | null;
   prenom: string | null;
@@ -12,14 +36,14 @@ export interface UserCreate extends User {
 
 export interface UpdateUser extends User {
   id: string;
-  role: "administrateur" | "locataire" | "prospect";
+  role: "admin" | "locataire" | "prospect";
   documents: string[] | [];
   is_active: boolean;
 }
 
 export interface PublicUser extends User {
   id: string;
-  role: "administrateur" | "locataire" | "prospect";
+  role: "admin" | "locataire" | "prospect";
   documents: string[];
   is_active: boolean;
   created_at: Date;

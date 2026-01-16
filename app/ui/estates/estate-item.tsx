@@ -6,15 +6,19 @@ import Image from "next/image";
 import { groupByThree } from "@/app/lib/utils";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useState } from "react";
-import { useSession } from "next-auth/react";
 import { LinkButton } from "../button";
 import { DeleteEstate } from "../buttons";
 import { PencilIcon } from "lucide-react";
 
-export default function EStateItem({ estate }: { estate: PublicEstate }) {
+export default function EStateItem({
+  estate,
+  userRole,
+}: {
+  estate: PublicEstate;
+  userRole: string;
+}) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const { data: session, status } = useSession();
 
   return (
     <div className="bg-white shadow-md overflow-hidden hover:shadow-xl transition fade-in">
@@ -70,11 +74,20 @@ export default function EStateItem({ estate }: { estate: PublicEstate }) {
           </div>
         </div>
         <div className="flex justify-end space-x-2">
-          <LinkButton className="w-full">Louer</LinkButton>
+          <LinkButton
+            href={
+              userRole && userRole !== "administrateur"
+                ? `/${userRole}/rental_requests/${estate.id}/create`
+                : "/login"
+            }
+            className="w-full"
+          >
+            Louer
+          </LinkButton>
           <LinkButton onClick={() => setIsOpen(true)} variant="outline">
             voir
           </LinkButton>
-          {status !== "loading" && session?.user.role === "administrateur" && (
+          {userRole && userRole === "administrateur" && (
             <>
               <LinkButton
                 href={`/admin/estates/${estate.id}/edit`}

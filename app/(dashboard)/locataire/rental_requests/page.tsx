@@ -21,9 +21,9 @@ export default async function Page(props: {
     <div className="w-full">
       <div className="mb-medium">
         <h1 className="text-3xl font-bold text-slate-800">
-          Demande de location
+          Mes demandes de location
         </h1>
-        <p className="text-slate-600">Gérez les demandes de location</p>
+        <p className="text-slate-600">Gérez vos demandes de location</p>
       </div>
       <div>
         <RentalRequestFilters />

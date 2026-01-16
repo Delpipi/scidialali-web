@@ -79,10 +79,16 @@ export function DeleteEstate({ id }: { id: string }) {
   );
 }
 
-export function ViewRentalRequest({ id }: { id: string }) {
+export function ViewRentalRequest({
+  id,
+  baseUrl,
+}: {
+  id: string;
+  baseUrl: string;
+}) {
   return (
     <Link
-      href={`/admin/rental_requests/${id}`}
+      href={`/${baseUrl}/rental_requests/${id}`}
       className="rounded-md border p-2.5 hover:bg-primary hover:text-white"
     >
       <EyeIcon className="w-5" />

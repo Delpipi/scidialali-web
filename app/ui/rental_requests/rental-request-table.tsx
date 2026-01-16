@@ -1,10 +1,14 @@
-import { getAllRentalRequest, getAllUsers } from "@/app/lib/actions";
-import { PublicRentalRequest } from "@/app/lib/definitions";
+import {
+  getAllRentalRequest,
+  getCurrentUserRentalRequests,
+} from "@/app/lib/actions";
 import { formatRelativeDate } from "@/app/lib/utils";
 import { Calendar, Home, MapPin, SmartphoneIcon } from "lucide-react";
-import RentalRequestStatus from "./rental-request-status";
 import { DeleteRentalRequest, ViewRentalRequest } from "../buttons";
 import Pagination from "../pagination";
+import { PublicRentalRequest } from "@/app/lib/definitions";
+import RentalRequestStatus from "./rental-request-status";
+import { auth } from "@/auth";
 
 interface TableProps {
   status?: string;
@@ -17,14 +21,36 @@ export default async function RentalRequestTable({
   search,
   currentPage,
 }: TableProps) {
-  const result = await getAllRentalRequest({
-    status: status === "" ? undefined : Number(status),
-    order_by: "created_at",
-    currentPage: currentPage,
-  });
+  const session = await auth();
 
-  const rentalRequests = result.data.items || [];
-  const totalPages = Math.ceil(result.data.total_count / result.data.limit);
+  let rentalRequests: PublicRentalRequest[] = [];
+  let totalPages = 1;
+
+  const userRole = session?.user ? session.user.role : "";
+
+  if (userRole && userRole === "administrateur") {
+    const result = await getAllRentalRequest({
+      status: Number(status),
+      order_by: "created_at",
+      currentPage: currentPage,
+    });
+    rentalRequests = result?.data?.items || [];
+    const total_count = result.data?.total_count || 1;
+    const limit = result.data?.limit || 1;
+    totalPages = Math.ceil(total_count / limit);
+  }
+
+  if (userRole && userRole !== "administrateur") {
+    const result = await getCurrentUserRentalRequests({
+      status: Number(status),
+      order_by: "created_at",
+      currentPage: currentPage,
+    });
+    rentalRequests = result?.data?.items || [];
+    const total_count = result.data?.total_count || 1;
+    const limit = result.data?.limit || 1;
+    totalPages = Math.ceil(total_count / limit);
+  }
 
   const displayData = rentalRequests.filter((request) => {
     if (!search) return true;
@@ -95,7 +121,7 @@ export default async function RentalRequestTable({
                     <RentalRequestStatus status={request.status} />
                   </div>
                   <div className="flex justify-end gap-2 mt-xsmall">
-                    <ViewRentalRequest id={request.id} />
+                    <ViewRentalRequest id={request.id} baseUrl={userRole} />
                     <DeleteRentalRequest id={request.id} />
                   </div>
                 </div>
@@ -189,7 +215,7 @@ export default async function RentalRequestTable({
                     </td>
                     <td className="whitespace-nowrap py-3 pl-6 pr-3">
                       <div className="flex justify-end gap-2">
-                        <ViewRentalRequest id={request.id} />
+                        <ViewRentalRequest id={request.id} baseUrl={userRole} />
                         <DeleteRentalRequest id={request.id} />
                       </div>
                     </td>

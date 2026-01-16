@@ -56,7 +56,10 @@ export const loginSchema = userSchema.pick({ contact: true, password: true });
 
 export const updatePasswordSchema = userSchema.pick({ password: true });
 
-export const updateUserSchema = userSchema.omit({ password: true });
+export const updateUserSchema = userSchema.omit({ password: true }).partial({
+  role: true,
+  is_active: true,
+});
 
 export type LoginData = z.infer<typeof loginSchema>;
 
@@ -90,6 +93,17 @@ export const estateSchema = z.object({
   documents: z
     .array(z.url("Chaque document doit être une URL valide"))
     .optional(),
+});
+
+export const rentalRequestSchema = z.object({
+  message: z
+    .string()
+    .trim()
+    .min(10, "Le message doit contenir au moins 10 caractères")
+    .max(500, "Le message ne doit pas dépasser 500 caractères")
+    .refine((val) => val !== undefined && val !== null, {
+      message: "Le message est obligatoire",
+    }),
 });
 
 export const createEstateSchema = estateSchema.omit({

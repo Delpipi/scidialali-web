@@ -7,7 +7,7 @@ export default async function Page() {
 
   if (!session?.user) redirect("/login");
 
-  if (session.user.role === "administrateur") redirect("/admin");
+  if (session.user.role === "admin") redirect("/admin");
   if (session.user.role === "locataire") redirect("/locataire");
 
   redirect("/prospect");

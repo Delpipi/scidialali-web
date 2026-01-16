@@ -8,16 +8,19 @@ import {
   estateSchema,
   EstateUpdateData,
   loginSchema,
+  rentalRequestSchema,
   updatePasswordSchema,
   UpdateUserSchema,
   updateUserSchema,
 } from "./schema";
 
 import {
+  AdminStats,
   ApiError,
   ApiResponse,
   DeleteFileResponse,
   PaginatedData,
+  ProspectStats,
   PublicEstate,
   PublicRentalRequest,
   PublicUser,
@@ -28,23 +31,13 @@ import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { ITEMS_PER_PAGE } from "./data";
+import z from "zod";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
 
 /**************************************
  ************* TYPES STATE ************
  **************************************/
-export type AdminStats = {
-  total_users: number;
-  active_tenants: number;
-  available_estates: number;
-  rented_estates: number;
-  pending_requests: number;
-  unread_messages: number;
-  pending_payments: number;
-  late_payments: number;
-};
-
 export type UserState = {
   status: "idle" | "success" | "error";
   message?: string;
@@ -80,6 +73,16 @@ export type EstateState = {
     id_locataire?: string[];
     images?: string[];
     documents?: string[];
+  };
+  httpStatus?: number;
+};
+
+export type RentalRequestState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+  data?: any;
+  fieldErrors?: {
+    message?: string[];
   };
   httpStatus?: number;
 };
@@ -137,6 +140,7 @@ export async function apiRequest<T>(
 
   if (!response.ok) {
     const errorData = await response.json();
+    console.error(errorData.detail);
     throw new ApiError(response.status, errorData.detail);
   }
 
@@ -176,6 +180,13 @@ async function apiUpload<T>(
  **************************************/
 export async function getAdminStats() {
   const result = await apiRequest<AdminStats>("/api/stats/admin", {
+    method: "GET",
+  });
+  return result;
+}
+
+export async function getProspectStats() {
+  const result = await apiRequest<ProspectStats>("/api/stats/prospect", {
     method: "GET",
   });
   return result;
@@ -344,6 +355,7 @@ export async function getAllAvailableEstates({
   } catch (error) {
     console.error("ERREUR GET ALL AVAILABLE ESTATE", error);
     const apiError = error as ApiError;
+    console.error(apiError.detail);
     return {
       status: "error",
       message: apiError.detail || "Une erreur est survenue.",
@@ -552,55 +564,70 @@ export async function getUser(id: string) {
   const user = await apiRequest<PublicUser>(`/api/users/${id}`, {
     method: "GET",
   });
-  console.log(user);
   return user;
 }
 
 //================ UPDATE USER ===================
 export async function updateUser(formData: FormData) {
-  try {
-    const validateFields = updateUserSchema.safeParse({
-      id: formData.get("id"),
-      nom: formData.get("nom"),
-      prenom: formData.get("prenom"),
-      email: formData.get("email"),
-      contact: formData.get("contact"),
-      profession: formData.get("profession"),
-      role: formData.get("role"),
-      is_active: !Boolean(formData.get("is_active")),
-      documents: JSON.parse(formData.get("documents") as string),
-    });
+  const session = await auth();
 
-    if (!validateFields.success) {
-      console.error(validateFields.error.flatten().fieldErrors);
-      return {
-        status: "error",
-        message: "Veuillez corriger les erreurs de validation.",
-        fieldErrors: validateFields.error.flatten().fieldErrors,
-      };
-    }
+  if (!session?.user) {
+    return { status: "error", message: "Non autorisé", httpStatus: 401 };
+  }
 
-    const userData: UpdateUserSchema = validateFields.data;
+  const targetUserId = formData.get("id");
 
-    const result = await apiRequest<ApiResponse>(`/api/users/${userData.id}`, {
-      method: "PUT",
-      body: JSON.stringify(userData),
-    });
+  if (
+    session.user.role !== "administrateur" &&
+    session.user.id !== targetUserId
+  ) {
+    return { status: "error", message: "Accès interdit", httpStatus: 403 };
+  }
 
-    return {
-      status: "success",
-      message: result.message,
-      data: result,
-    };
-  } catch (error) {
-    console.error("ERREUR UPDATE USER", error);
-    const apiError = error as ApiError;
+  const validateFields = updateUserSchema.safeParse({
+    id: targetUserId,
+    nom: formData.get("nom"),
+    prenom: formData.get("prenom"),
+    email: formData.get("email"),
+    contact: formData.get("contact"),
+    profession: formData.get("profession"),
+    documents: JSON.parse(formData.get("documents") as string),
+  });
+
+  if (!validateFields.success) {
     return {
       status: "error",
-      message: apiError.detail || "Une erreur est survenue",
-      httpStatus: apiError.status,
+      message: "Veuillez corriger les erreurs",
+      fieldErrors: validateFields.error.flatten().fieldErrors,
     };
   }
+
+  const roleEnum = z.enum(["administrateur", "utilisateur", "prospect"]);
+
+  const role =
+    session.user.role === "administrateur" && formData.get("role")
+      ? roleEnum.parse(formData.get("role"))
+      : session.user.role;
+
+  const userData = {
+    ...validateFields.data,
+    role,
+    is_active:
+      session.user.role === "administrateur"
+        ? formData.get("is_active") === "true"
+        : session.user.is_active,
+  };
+
+  const result = await apiRequest<ApiResponse>(`/api/users/${targetUserId}`, {
+    method: "PUT",
+    body: JSON.stringify(userData),
+  });
+
+  return {
+    status: "success",
+    message: result.message,
+    data: result,
+  };
 }
 
 //============== DELETE USER ================
@@ -748,10 +775,31 @@ export async function getAllRentalRequest({
   currentPage?: number;
 }) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-  let url = `/api/rental_requests/?limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`;
-  if (status !== undefined) {
-    url += `&status=${status}`;
-  }
+  let url = `/api/rental_requests/?&status=${
+    status || ""
+  }&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`;
+
+  const response = await apiRequest<PaginatedData>(url);
+  return {
+    status: "success",
+    data: response,
+  };
+}
+
+export async function getCurrentUserRentalRequests({
+  status,
+  order_by,
+  currentPage = 1,
+}: {
+  status?: number;
+  order_by: string;
+  currentPage?: number;
+}) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  let url = `/api/rental_requests/me?&status=${
+    status || ""
+  }&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`;
+
   const response = await apiRequest<PaginatedData>(url);
   return {
     status: "success",
@@ -767,6 +815,48 @@ export async function getRentalRequestById(id: string) {
     }
   );
   return result;
+}
+
+export async function createRentalRentalRequest(
+  prevState: RentalRequestState,
+  formData: FormData
+): Promise<RentalRequestState> {
+  const validateFields = rentalRequestSchema.safeParse({
+    message: formData.get("message"),
+  });
+
+  if (!validateFields.success) {
+    console.error(validateFields.error.flatten().fieldErrors);
+    return {
+      status: "error",
+      message: "Veuillez corriger les erreurs de validation.",
+      fieldErrors: validateFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const session = await auth();
+
+  if (!session?.user) {
+    return {
+      status: "error",
+      message:
+        "Vous ne pouvez pas effectuer cette operation. Merci de vous connecter.",
+    };
+  }
+
+  const data = {
+    user_id: session?.user.id,
+    estate_id: formData.get("estate_id") as string,
+    message: formData.get("message") as string,
+  };
+
+  const response = await apiRequest<ApiResponse>("/api/rental_requests", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+  revalidatePath("/prospect/rental_requests");
+  redirect("/prospect/rental_requests");
 }
 
 export async function approveRentalRequest(id: string, admin_notes: string) {
