@@ -3,20 +3,12 @@
 import { createRentalRentalRequest } from "@/app/lib/actions";
 import { PublicEstate } from "@/app/lib/definitions";
 import { formatCurrency } from "@/app/lib/utils";
-import {
-  Building2Icon,
-  DoorOpen,
-  Home,
-  MailIcon,
-  MapPin,
-  Ruler,
-} from "lucide-react";
+import { Building2Icon, DoorOpen, Home, MapPin, Ruler } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 export default function CreateRentalRequestForm({
   estate,
-  userId,
 }: {
   estate: PublicEstate;
   userId: string;
@@ -34,7 +26,7 @@ export default function CreateRentalRequestForm({
       data: {},
       fieldErrors: {},
       httpStatus: 0,
-    }
+    },
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

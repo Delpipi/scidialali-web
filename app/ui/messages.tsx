@@ -26,16 +26,26 @@ export default function MessagesPage({
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const loadUnreadCount = async () => {
+      try {
+        const result = await getUnreadCount();
+        if (isMounted) {
+          setUnreadCount(result.data || 0);
+        }
+      } catch (error) {
+        console.error("Erreur comptage non lus:", error);
+      }
+    };
+
     loadUnreadCount();
+
+    return () => {
+      isMounted = false;
+    };
   }, [refreshKey]);
-  const loadUnreadCount = async () => {
-    try {
-      const result = await getUnreadCount();
-      setUnreadCount(result.data || 0);
-    } catch (error) {
-      console.error("Erreur comptage non lus:", error);
-    }
-  };
+
   const handleSelectMessage = async (message: PublicMessage) => {
     setSelectedMessage(message);
     if (!message.is_read) {
@@ -47,6 +57,7 @@ export default function MessagesPage({
       }
     }
   };
+
   return (
     <div className="h-screen flex flex-col bg-gray-100">
       {/* Header */}

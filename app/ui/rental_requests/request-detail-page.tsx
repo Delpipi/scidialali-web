@@ -19,15 +19,13 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import toast, { Toaster } from "react-hot-toast";
 import { formatCurrency, formatRelativeDate } from "@/app/lib/utils";
 import RentalRequestStatus from "@/app/ui/rental_requests/rental-request-status";
-import Breadcrumbs from "@/app/ui/breadcrumbs";
 import { approveRentalRequest, rejectedRentalRequest } from "@/app/lib/actions";
 import { useSession } from "next-auth/react";
+import toast from "react-hot-toast";
 
 // Composant Modal
 function Modal({

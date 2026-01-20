@@ -26,19 +26,6 @@ import {
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-interface UpdateUserFormProps {
-  user: UpdateUser;
-  biens: Estate[];
-}
-
-interface FormState {
-  message?: string;
-  errors?: Record<string, string[]>;
-  success?: boolean;
-  user?: User;
-  error?: string;
-}
-
 type Errors = {
   nom?: string[];
   prenom?: string[];

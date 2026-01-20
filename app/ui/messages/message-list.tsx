@@ -10,7 +10,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { PublicMessage } from "@/app/lib/definitions";
-import { deleteMessage, getAllMessages, getInbox } from "@/app/lib/actions";
+import { deleteMessage, getAllMessages } from "@/app/lib/actions";
 
 interface MessageListProps {
   onSelectMessage: (message: PublicMessage) => void;
@@ -51,10 +51,6 @@ export function MessageList({
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    loadMessages();
-  }, [page]);
-
   const loadMessages = async () => {
     try {
       setLoading(true);
@@ -81,6 +77,10 @@ export function MessageList({
       alert("Erreur lors de la suppression");
     }
   };
+
+  useEffect(() => {
+    loadMessages();
+  }, [page]);
 
   if (loading) return <div className="p-4 text-center">Chargement...</div>;
 

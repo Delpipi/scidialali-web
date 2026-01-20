@@ -10,7 +10,6 @@ import {
   loginSchema,
   rentalRequestSchema,
   updatePasswordSchema,
-  UpdateUserSchema,
   updateUserSchema,
 } from "./schema";
 
@@ -775,7 +774,7 @@ export async function getAllRentalRequest({
   currentPage?: number;
 }) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-  let url = `/api/rental_requests/?&status=${
+  const url = `/api/rental_requests/?&status=${
     status || ""
   }&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`;
 
@@ -796,7 +795,7 @@ export async function getCurrentUserRentalRequests({
   currentPage?: number;
 }) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-  let url = `/api/rental_requests/me?&status=${
+  const url = `/api/rental_requests/me?&status=${
     status || ""
   }&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`;
 
