@@ -8,7 +8,7 @@ export function HeaderNav({ user }: { user: any }) {
     if (!user) return "/login";
 
     switch (user.role) {
-      case "administrateur":
+      case "admin":
         return "/admin";
       case "locataire":
         return "/locataire";

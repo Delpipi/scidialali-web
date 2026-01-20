@@ -70,7 +70,7 @@ export function DeleteEstate({ id }: { id: string }) {
     <form action={deleteEstateWithId}>
       <button
         type="submit"
-        className="inline-flex items-center justify-center font-semibold transition cursor-pointer rounded-sm h-11 px-5
+        className="w-full inline-flex items-center justify-center font-semibold transition cursor-pointer rounded-sm h-11 px-5
         border-2 border-primary text-primary hover:text-white hover:bg-primary"
       >
         <TrashIcon className="w-5" />

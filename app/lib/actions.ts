@@ -19,9 +19,12 @@ import {
   ApiError,
   ApiResponse,
   DeleteFileResponse,
+  MessageFormData,
+  MessageRepliesResponse,
   PaginatedData,
   ProspectStats,
   PublicEstate,
+  PublicMessage,
   PublicRentalRequest,
   PublicUser,
   UploadResponse,
@@ -120,7 +123,7 @@ export async function handleUnauthorized() {
  **************************************/
 export async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   const session = await auth();
 
@@ -150,7 +153,7 @@ export async function apiRequest<T>(
 
 async function apiUpload<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   const session = await auth();
 
@@ -198,7 +201,7 @@ export async function getProspectStats() {
 
 export async function authenticate(
   prevState: AuthState,
-  formData: FormData
+  formData: FormData,
 ): Promise<AuthState> {
   const validateFields = loginSchema.safeParse({
     contact: formData.get("contact"),
@@ -285,7 +288,7 @@ export async function updatePassword(oldPassword: string, newPassword: string) {
 //REGISTER USER
 export async function register(
   prevState: UserState,
-  formData: FormData
+  formData: FormData,
 ): Promise<UserState> {
   const validateFields = createUserSchema.safeParse({
     nom: formData.get("nom"),
@@ -345,7 +348,7 @@ export async function getAllAvailableEstates({
   try {
     const result = await apiRequest<PaginatedData>(
       `/api/estates/available?&type=${type}&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`,
-      { method: "GET" }
+      { method: "GET" },
     );
 
     return {
@@ -425,7 +428,7 @@ export async function getEstate(id: string) {
 // CREATE ESTATE
 export async function createEstate(
   prevState: EstateState,
-  formData: FormData
+  formData: FormData,
 ): Promise<EstateState> {
   const validateFields = createEstateSchema.safeParse({
     titre: formData.get("titre"),
@@ -500,7 +503,7 @@ export async function updateEstate(formData: FormData) {
 
     const result = await apiRequest<ApiResponse>(
       `/api/estates/${estateData.id}`,
-      { method: "PUT", body: JSON.stringify(estateData) }
+      { method: "PUT", body: JSON.stringify(estateData) },
     );
 
     return {
@@ -577,10 +580,7 @@ export async function updateUser(formData: FormData) {
 
   const targetUserId = formData.get("id");
 
-  if (
-    session.user.role !== "administrateur" &&
-    session.user.id !== targetUserId
-  ) {
+  if (session.user.role !== "admin" && session.user.id !== targetUserId) {
     return { status: "error", message: "Accès interdit", httpStatus: 403 };
   }
 
@@ -602,10 +602,10 @@ export async function updateUser(formData: FormData) {
     };
   }
 
-  const roleEnum = z.enum(["administrateur", "utilisateur", "prospect"]);
+  const roleEnum = z.enum(["admin", "utilisateur", "prospect"]);
 
   const role =
-    session.user.role === "administrateur" && formData.get("role")
+    session.user.role === "admin" && formData.get("role")
       ? roleEnum.parse(formData.get("role"))
       : session.user.role;
 
@@ -613,7 +613,7 @@ export async function updateUser(formData: FormData) {
     ...validateFields.data,
     role,
     is_active:
-      session.user.role === "administrateur"
+      session.user.role === "admin"
         ? formData.get("is_active") === "true"
         : session.user.is_active,
   };
@@ -651,7 +651,7 @@ export async function deleteUser(id: string) {
 export async function uploadDocument(
   id: string,
   files: File[],
-  folderName: string
+  folderName: string,
 ) {
   try {
     if (files.length === 0) {
@@ -696,7 +696,7 @@ export async function uploadDocument(
       {
         method: "POST",
         body: formData,
-      }
+      },
     );
 
     return {
@@ -722,7 +722,7 @@ export async function uploadDocument(
 export async function deleteDocument(
   id: string,
   fileUrls: string[],
-  folderName: string
+  folderName: string,
 ) {
   try {
     if (fileUrls.length === 0) {
@@ -739,7 +739,7 @@ export async function deleteDocument(
         body: JSON.stringify({
           file_urls: fileUrls,
         }),
-      }
+      },
     );
 
     return {
@@ -812,14 +812,14 @@ export async function getRentalRequestById(id: string) {
     `/api/rental_requests/${id}`,
     {
       method: "GET",
-    }
+    },
   );
   return result;
 }
 
 export async function createRentalRentalRequest(
   prevState: RentalRequestState,
-  formData: FormData
+  formData: FormData,
 ): Promise<RentalRequestState> {
   const validateFields = rentalRequestSchema.safeParse({
     message: formData.get("message"),
@@ -879,4 +879,266 @@ export async function deleteRentalRequest(id: string) {
     method: "DELETE",
   });
   return message;
+}
+
+/**************************************
+ ************* MESSAGE ****************
+ **************************************/
+
+//= GET ALL MESSAGES
+export async function getAllMessages({
+  type,
+  is_read,
+  order_by,
+  currentPage = 1,
+}: {
+  type?: string;
+  is_read?: boolean;
+  order_by: string;
+  currentPage?: number;
+}) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  try {
+    const result = await apiRequest<PaginatedData>(
+      `/api/messages/?&type=${type || ""}&is_read=${is_read || ""}&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`,
+      { method: "GET" },
+    );
+
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    console.error("ERREUR GET ALL MESSAGE", error);
+    const apiError = error as ApiError;
+    console.error(apiError.detail);
+    return {
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue.",
+      httpStatus: apiError.status,
+    };
+  }
+}
+
+export async function getMessageReplies(parentId: string) {
+  try {
+    const result = await apiRequest<MessageRepliesResponse>(
+      `/api/messages/${parentId}/replies`,
+      { method: "GET" },
+    );
+
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    console.error("ERREUR GET MESSAGE REPLIES", error);
+    const apiError = error as ApiError;
+    return {
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue.",
+      httpStatus: apiError.status,
+    };
+  }
+}
+
+//= GET INBOX
+export async function getInbox({
+  type,
+  is_read,
+  order_by,
+  currentPage = 1,
+}: {
+  type?: string;
+  is_read?: boolean;
+  order_by: string;
+  currentPage?: number;
+}) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  try {
+    const result = await apiRequest<PaginatedData>(
+      `/api/messages/inbox?&type=${type || ""}&is_read=${is_read || ""}&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`,
+      { method: "GET" },
+    );
+
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    console.error("ERREUR GET INBOX", error);
+    const apiError = error as ApiError;
+    console.error(apiError.detail);
+    return {
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue.",
+      httpStatus: apiError.status,
+    };
+  }
+}
+
+//= GET UNREAD COUNT
+export async function getUnreadCount() {
+  try {
+    const unread_count = await apiRequest(`/api/messages/unread_count`, {
+      method: "GET",
+    });
+
+    return {
+      status: "success",
+      data: unread_count as number,
+    };
+  } catch (error) {
+    console.error("ERREUR GET UNREAD COUNT", error);
+    const apiError = error as ApiError;
+    console.error(apiError.detail);
+    return {
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue.",
+      httpStatus: apiError.status,
+    };
+  }
+}
+
+//= READ MESSAGE
+export async function readMessage(id: string) {
+  try {
+    const result = await apiRequest<PublicMessage>(`/api/messages/${id}`, {
+      method: "GET",
+    });
+
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    console.error("ERREUR READ MESSAGE", error);
+    const apiError = error as ApiError;
+    console.error(apiError.detail);
+    return {
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue.",
+      httpStatus: apiError.status,
+    };
+  }
+}
+
+//= DELETE MESSAGE
+export async function deleteMessage(id: string) {
+  try {
+    const result = await apiRequest<PublicMessage>(`/api/messages/${id}`, {
+      method: "DELETE",
+    });
+
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    console.error("ERREUR DELETE MESSAGE", error);
+    const apiError = error as ApiError;
+    console.error(apiError.detail);
+    return {
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue.",
+      httpStatus: apiError.status,
+    };
+  }
+}
+
+//= CREATE MESSAGE
+export async function createMessage(messageFormData: MessageFormData) {
+  const formData = new FormData();
+  formData.append("recipient_id", messageFormData.recipient_id);
+  formData.append("subject", messageFormData.subject);
+  formData.append("content", messageFormData.content);
+
+  if (messageFormData.type) formData.append("type", messageFormData.type);
+
+  if (messageFormData.files) {
+    messageFormData.files.forEach((file) => formData.append("files", file));
+  }
+  try {
+    const result = await apiUpload<ApiResponse>(`/api/messages`, {
+      method: "POST",
+      body: formData,
+    });
+
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    console.error("ERREUR CREATE MESSAGE", error);
+    const apiError = error as ApiError;
+    console.error(apiError.detail);
+    return {
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue.",
+      httpStatus: apiError.status,
+    };
+  }
+}
+
+//== REPLY TO MESSAGE
+export async function replyToMessage(
+  parentId: string,
+  content: string,
+  files?: File[],
+) {
+  try {
+    const formData = new FormData();
+    formData.append("content", content);
+
+    if (files) {
+      files.forEach((file) => formData.append("files", file));
+    }
+
+    const result = await apiUpload<ApiResponse>(
+      `/api/messages/${parentId}/reply`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
+
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    console.error("ERREUR REPLY TO MESSAGE", error);
+    const apiError = error as ApiError;
+    return {
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue.",
+      httpStatus: apiError.status,
+    };
+  }
+}
+
+//== MARK AS READ
+export async function markMessageAsRead(id: string) {
+  try {
+    const result = await apiRequest<ApiResponse>(
+      `/api/messages/${id}/mark_as_read`,
+      {
+        method: "PATCH",
+      },
+    );
+
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    console.error("ERREUR MARK MESSAGE AS READ", error);
+    const apiError = error as ApiError;
+    console.error(apiError.detail);
+    return {
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue.",
+      httpStatus: apiError.status,
+    };
+  }
 }

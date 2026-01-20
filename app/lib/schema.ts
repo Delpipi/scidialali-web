@@ -36,7 +36,7 @@ const userSchema = z.object({
     .min(2, "La profession doit contenir au moins 2 caractères")
     .max(50, "La profession ne peut pas dépasser 50 caractères"),
 
-  role: z.enum(["administrateur", "locataire", "prospect"]),
+  role: z.enum(["admin", "locataire", "prospect"]),
 
   is_active: z.boolean().default(false),
 

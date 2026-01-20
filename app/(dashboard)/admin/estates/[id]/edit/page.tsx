@@ -20,7 +20,7 @@ export default async function EditUserPage({
   const [estate, result] = await Promise.all([
     getEstate(id),
     getAllUsers({
-      role: "administrateur",
+      role: "admin",
       order_by: "created_at",
       currentPage: 1,
     }),

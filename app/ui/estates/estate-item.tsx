@@ -37,8 +37,8 @@ export default function EStateItem({
               estate.status === 1
                 ? "bg-primary/10 text-primary/80"
                 : estate.status === 2
-                ? "bg-orange-100 text-orange-800"
-                : "bg-green-100 text-green-800"
+                  ? "bg-orange-100 text-orange-800"
+                  : "bg-green-100 text-green-800"
             } `}
           >
             {(() => {
@@ -73,21 +73,21 @@ export default function EStateItem({
             </p>
           </div>
         </div>
-        <div className="flex justify-end space-x-2">
+        <div className="flex flex-col space-y-2 md:flex-row md:flex-wrap md:space-x-2">
           <LinkButton
             href={
-              userRole && userRole !== "administrateur"
+              userRole && userRole !== "admin"
                 ? `/${userRole}/rental_requests/${estate.id}/create`
                 : "/login"
             }
-            className="w-full"
+            className="flex-1 py-3"
           >
             Louer
           </LinkButton>
           <LinkButton onClick={() => setIsOpen(true)} variant="outline">
             voir
           </LinkButton>
-          {userRole && userRole === "administrateur" && (
+          {userRole && userRole === "admin" && (
             <>
               <LinkButton
                 href={`/admin/estates/${estate.id}/edit`}
@@ -155,8 +155,8 @@ export default function EStateItem({
                     estate.status === 1
                       ? "bg-primary/10 text-primary/80"
                       : estate.status === 2
-                      ? "bg-orange-100 text-orange-800"
-                      : "bg-green-100 text-green-800"
+                        ? "bg-orange-100 text-orange-800"
+                        : "bg-green-100 text-green-800"
                   }`}
                 >
                   {(() => {

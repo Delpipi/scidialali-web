@@ -9,7 +9,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { useSession } from "next-auth/react";
-import { HandshakeIcon, UserIcon } from "lucide-react";
+import { HandshakeIcon, MailIcon, UserIcon } from "lucide-react";
 
 // Map of links to display in the side navigation.
 // Depending on the size of the application, this would be stored in a database.
@@ -26,6 +26,11 @@ const menuAdmin = [
     icon: HandshakeIcon,
   },
   {
+    name: "Messages",
+    href: "/admin/messages",
+    icon: MailIcon,
+  },
+  {
     name: "Biens Immobiliers",
     href: "/admin/estates",
     icon: BuildingOffice2Icon,
@@ -38,6 +43,11 @@ const menuProspect = [
     name: "Mes Demandes",
     href: "/prospect/rental_requests",
     icon: HandshakeIcon,
+  },
+  {
+    name: "Mes Messages",
+    href: "/prospect/messages",
+    icon: MailIcon,
   },
   {
     name: "Profile",
@@ -54,6 +64,11 @@ const menuLocataire = [
     icon: HandshakeIcon,
   },
   {
+    name: "Mes Messages",
+    href: "/locataire/messages",
+    icon: MailIcon,
+  },
+  {
     name: "Profile",
     href: "/locataire/profile",
     icon: UserIcon,
@@ -65,7 +80,7 @@ export default function NavLinks({ user }: { user: any }) {
   return (
     <>
       {user &&
-        user.role === "administrateur" &&
+        user.role === "admin" &&
         menuAdmin.map((link) => {
           const LinkIcon = link.icon;
           return (
@@ -76,7 +91,7 @@ export default function NavLinks({ user }: { user: any }) {
                 "flex h-12 grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-primary/10 hover:text-primary md:flex-none md:justify-start md:p-xsmall",
                 {
                   "bg-primary/10 text-primary ": pathname === link.href,
-                }
+                },
               )}
             >
               <LinkIcon className="w-6" />
@@ -96,7 +111,7 @@ export default function NavLinks({ user }: { user: any }) {
                 "flex h-12 grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-primary/10 hover:text-primary md:flex-none md:justify-start md:p-xsmall",
                 {
                   "bg-primary/10 text-primary ": pathname === link.href,
-                }
+                },
               )}
             >
               <LinkIcon className="w-6" />
@@ -116,7 +131,7 @@ export default function NavLinks({ user }: { user: any }) {
                 "flex h-12 grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-primary/10 hover:text-primary md:flex-none md:justify-start md:p-xsmall",
                 {
                   "bg-primary/10 text-primary ": pathname === link.href,
-                }
+                },
               )}
             >
               <LinkIcon className="w-6" />

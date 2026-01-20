@@ -35,7 +35,7 @@ export default async function Page(props: {
         <FilterItems statusInput={true} />
       </div>
       <section className="py-medium">
-        <div className="mx-auto px-small max-w-6xl">
+        <div className="mx-auto px-small">
           <Suspense
             key={type + minRent + maxRent + search + currentPage}
             fallback={<ListLoader />}

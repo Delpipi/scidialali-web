@@ -28,7 +28,7 @@ export default async function RentalRequestTable({
 
   const userRole = session?.user ? session.user.role : "";
 
-  if (userRole && userRole === "administrateur") {
+  if (userRole && userRole === "admin") {
     const result = await getAllRentalRequest({
       status: Number(status),
       order_by: "created_at",
@@ -40,7 +40,7 @@ export default async function RentalRequestTable({
     totalPages = Math.ceil(total_count / limit);
   }
 
-  if (userRole && userRole !== "administrateur") {
+  if (userRole && userRole !== "admin") {
     const result = await getCurrentUserRentalRequests({
       status: Number(status),
       order_by: "created_at",

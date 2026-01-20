@@ -155,3 +155,41 @@ export interface PaginatedData {
   page: number;
   limit: number;
 }
+
+/********************************
+ *********** MESSAGE ************
+ ********************************/
+export enum MessageType {
+  INCIDENT = "incident",
+  PAYMENT_REMINDER = "payment_reminder",
+  DOCUMENT_REQUEST = "document_request",
+  GENERAL = "general",
+}
+
+export interface PublicMessage {
+  id: string;
+  subject: string;
+  content: string;
+  type: MessageType;
+  is_read: boolean;
+  sender_id: string;
+  recipient_id: string;
+  parent_id?: string;
+  sender?: PublicUser;
+  recipient?: PublicUser;
+  attachments: string[]; // ✅ CORRECTION: "attachments" pas "documents"
+  created_at: string;
+}
+
+export interface MessageFormData {
+  recipient_id: string;
+  subject: string;
+  content: string;
+  type?: MessageType;
+  files?: File[];
+}
+
+export type MessageRepliesResponse = {
+  items: PublicMessage[];
+  total_count: number;
+};

@@ -27,7 +27,7 @@ export default async function EStatesList({
 
   const userRole = session?.user ? session.user.role : "";
 
-  if (!userRole || (userRole && userRole !== "administrateur")) {
+  if (!userRole || (userRole && userRole !== "admin")) {
     const result = await getAllAvailableEstates({
       type: type,
       order_by: "created_at",
@@ -39,7 +39,7 @@ export default async function EStatesList({
     totalPages = Math.ceil(total_count / limit);
   }
 
-  if (userRole && userRole === "administrateur") {
+  if (userRole && userRole === "admin") {
     const result = await getAllEstates({
       status: Number(status) || 0,
       type: type,

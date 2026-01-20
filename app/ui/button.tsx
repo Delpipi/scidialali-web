@@ -1,53 +1,68 @@
 import * as React from "react";
-import { cn } from "../lib/utils"; // Assuming cn is a utility for combining class names
-import Link from "next/link";
+import { cn } from "../lib/utils";
 
-type ButtonProps = {
-  href?: string; // Optional href for navigation (if you want to support <a> links)
-  onClick?: () => void; // Optional click handler
-  variant?: "default" | "outline" | "hero"; // Button style variants
-  size?: "sm" | "md" | "lg"; // Button size options
-  className?: string; // Custom className
-  children: React.ReactNode; // Button content
+type Variant = "default" | "outline" | "hero";
+type Size = "sm" | "md" | "lg";
+
+type CommonProps = {
+  variant?: Variant;
+  size?: Size;
+  className?: string;
+  children: React.ReactNode;
 };
 
-export function LinkButton({
-  onClick,
-  variant = "default",
-  size = "md",
-  className,
-  children,
-  href,
-}: ButtonProps) {
+type AnchorProps = CommonProps &
+  Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof CommonProps> & {
+    href: string;
+  };
+
+type ButtonProps = CommonProps &
+  Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, keyof CommonProps> & {
+    href?: undefined;
+  };
+
+type LinkButtonProps = AnchorProps | ButtonProps;
+
+export function LinkButton(props: LinkButtonProps) {
+  const { variant = "default", size = "md", className, children } = props;
+
   const commonClasses =
     "inline-flex items-center justify-center font-semibold transition cursor-pointer rounded-sm";
 
-  const variantClasses = {
+  const variantClasses: Record<Variant, string> = {
     default: "bg-primary text-white hover:bg-primary/90",
     outline:
       "border-2 border-primary text-primary hover:text-white hover:bg-primary",
     hero: "bg-primary text-white shadow-lg hover:scale-105",
   };
 
-  const sizeClasses = {
+  const sizeClasses: Record<Size, string> = {
     sm: "h-9 px-4 text-sm",
     md: "h-11 px-5",
     lg: "h-12 px-8 text-base",
   };
 
-  const buttonClasses = cn(
+  const classes = cn(
     commonClasses,
     variantClasses[variant],
     sizeClasses[size],
-    className
+    className,
   );
 
-  return href ? (
-    <a href={href} className={buttonClasses}>
-      {children}
-    </a>
-  ) : (
-    <button onClick={onClick} className={buttonClasses}>
+  if ("href" in props) {
+    const { href, ...anchorProps } = props as AnchorProps; // ✅ CAST CLAIR
+
+    return (
+      <a href={href} className={classes} {...anchorProps}>
+        {children}
+      </a>
+    );
+  }
+
+  const buttonProps = props as ButtonProps; // ✅ CAST CLAIR
+
+  return (
+    <button className={classes} {...buttonProps}>
       {children}
     </button>
   );

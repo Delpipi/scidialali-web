@@ -493,7 +493,7 @@ export default function RequestDetailPage({
 
               {/* Actions */}
               {status === "authenticated" &&
-                session.user.role === "administrateur" &&
+                session.user.role === "admin" &&
                 request.status === 0 && (
                   <div className="bg-white rounded-sm  border border-slate-200 overflow-hidden">
                     <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">

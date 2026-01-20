@@ -228,7 +228,7 @@ export default function UpdateUserForm({ user }: { user: PublicUser }) {
 
       if (result.status === "success") {
         toast.success(result.message);
-        if (user.role === "administrateur") {
+        if (user.role === "admin") {
           setTimeout(() => router.push("/admin/users"), 2000);
         }
       } else {
@@ -332,7 +332,7 @@ export default function UpdateUserForm({ user }: { user: PublicUser }) {
                   );
                 })}
 
-                {user.role === "administrateur" && (
+                {user.role === "admin" && (
                   <>
                     <div>
                       <label
@@ -349,7 +349,7 @@ export default function UpdateUserForm({ user }: { user: PublicUser }) {
                         disabled={isLoading || isUploading}
                         className="px-large py-xsmall bg-gray-100 outline-2 outline-gray-600 rounded-sm w-full placeholder-gray-500"
                       >
-                        <option value="administrateur">Administrateur</option>
+                        <option value="admin">admin</option>
                         <option value="locataire">Locataire</option>
                         <option value="prospect">Prospect</option>
                       </select>
