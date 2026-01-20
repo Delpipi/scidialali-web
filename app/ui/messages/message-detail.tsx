@@ -34,7 +34,7 @@ const MESSAGE_TYPE_CONFIG = {
   document_request: {
     label: "Demande document",
     icon: FileText,
-    color: "text-blue-600 bg-blue-50",
+    color: "text-primary bg-blue-50",
   },
   general: {
     label: "Général",
@@ -151,7 +151,7 @@ export function MessageDetail({
         <div className="flex justify-between items-start mb-3">
           <div className="flex items-center gap-2">
             <span
-              className={`inline-flex items-center gap-1 px-2 py-1 rounded text-sm font-medium ${typeConfig.color}`}
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-sm font-medium ${typeConfig.color}`}
             >
               <Icon className="w-4 h-4" />
               {typeConfig.label}
@@ -159,7 +159,7 @@ export function MessageDetail({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-200 rounded transition"
+            className="p-2 hover:bg-gray-200 rounded-md transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -201,7 +201,7 @@ export function MessageDetail({
             </p>
           </div>
 
-          {/* ✅ CORRECTION: attachments au lieu de documents */}
+          {/* attachments au lieu de documents */}
           {message.attachments?.length > 0 && (
             <div className="mt-6 border-t pt-4">
               <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
@@ -221,10 +221,10 @@ export function MessageDetail({
                       href={url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 border rounded hover:bg-gray-50 transition group"
+                      className="flex items-center gap-3 p-3 border rounded-md hover:bg-gray-50 transition group"
                     >
-                      <div className="shrink-0 w-10 h-10 bg-blue-100 rounded flex items-center justify-center">
-                        <span className="text-xs font-bold text-blue-600">
+                      <div className="shrink-0 w-10 h-10 bg-blue-100 rounded-md flex items-center justify-center">
+                        <span className="text-xs font-bold text-primary">
                           {extension}
                         </span>
                       </div>
@@ -236,7 +236,7 @@ export function MessageDetail({
                           Cliquer pour télécharger
                         </p>
                       </div>
-                      <Download className="w-5 h-5 text-gray-400 group-hover:text-blue-600 shrink-0" />
+                      <Download className="w-5 h-5 text-gray-400 group-hover:text-primary shrink-0" />
                     </a>
                   );
                 })}
@@ -267,7 +267,7 @@ export function MessageDetail({
                 {/* Info expéditeur */}
                 {reply.sender && (
                   <div className="flex items-center gap-2 mb-3 text-sm">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-md bg-primary">
+                    <div className="w-10 h-10 rounded-md-full flex items-center justify-center text-white font-semibold text-sm shadow-md bg-primary">
                       {reply.sender.prenom?.[0]?.toUpperCase() || "?"}
                       {reply.sender.nom?.[0]?.toUpperCase() || "?"}
                     </div>
@@ -305,7 +305,7 @@ export function MessageDetail({
                             href={url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded text-sm transition"
+                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-md text-sm transition"
                           >
                             <Paperclip className="w-3 h-3" />
                             <span className="truncate max-w-xs">
@@ -331,17 +331,14 @@ export function MessageDetail({
       {/* Reply Section */}
       <div className="border-t p-4 bg-white">
         {!showReply ? (
-          <button
-            onClick={() => setShowReply(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          >
+          <LinkButton onClick={() => setShowReply(true)}>
             <Reply className="w-4 h-4" />
             Répondre
-          </button>
+          </LinkButton>
         ) : (
           <div className="space-y-3">
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+              <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
                 {error}
               </div>
             )}
@@ -353,8 +350,8 @@ export function MessageDetail({
                 setError("");
               }}
               placeholder="Votre réponse (10-1000 caractères)..."
-              className="w-full p-3 border rounded resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows={4}
+              className="px-xsmall py-xsmall bg-gray-100 outline-2 outline-gray-600 rounded-sm w-full placeholder-gray-500"
+              rows={5}
             />
 
             <div className="text-xs text-gray-500">
@@ -373,7 +370,7 @@ export function MessageDetail({
               />
               <label
                 htmlFor="reply-files"
-                className="inline-flex items-center gap-2 px-3 py-2 border rounded cursor-pointer hover:bg-gray-50 transition"
+                className="inline-flex items-center gap-2 px-3 py-2 border rounded-md cursor-pointer hover:bg-gray-50 transition"
               >
                 <Paperclip className="w-4 h-4" />
                 Joindre des fichiers
@@ -387,7 +384,7 @@ export function MessageDetail({
                   {replyFiles.map((file, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-2 p-2 bg-gray-50 border rounded"
+                      className="flex items-center gap-2 p-2 bg-gray-50 border rounded-md"
                     >
                       <Paperclip className="w-4 h-4 text-gray-400 shrink-0" />
                       <span className="flex-1 text-sm truncate">
@@ -409,12 +406,13 @@ export function MessageDetail({
             </div>
 
             <div className="flex gap-2">
-              <LinkButton
+              <button
                 onClick={handleReply}
                 disabled={sending || !replyContent.trim()}
+                className="px-4 py-2 rounded-md bg-primary text-white"
               >
                 {sending ? "Envoi..." : "Envoyer"}
-              </LinkButton>
+              </button>
               <button
                 onClick={() => {
                   setShowReply(false);
@@ -422,7 +420,7 @@ export function MessageDetail({
                   setReplyFiles([]);
                   setError("");
                 }}
-                className="px-4 py-2 border rounded hover:bg-gray-50 transition"
+                className="px-4 py-2 border rounded-md hover:bg-gray-50 transition"
               >
                 Annuler
               </button>

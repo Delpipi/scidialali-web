@@ -59,7 +59,7 @@ export default function EstateFilters({
     replace(`${pathname}?${params.toString()}`);
   };
   return (
-    <div className="bg-gray-50 rounded-sm p-xsmall mb-small">
+    <div className="bg-gray-50 rounded-sm p-xsmall mb-small w-full">
       <form
         onSubmit={handleFilter}
         className="flex flex-col md:flex-row justify-evenly gap-xsmall"
