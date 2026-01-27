@@ -1,268 +1,193 @@
 # SCI DIALALI - Real Estate Management Platform
 
-## Overview
+## A propos
 
-As a software engineer, I built this full-stack web application to deepen my understanding of modern authentication systems, API integration, and state management in Next.js. The project focuses on implementing secure user authentication with Firebase, integrating a FastAPI backend, and creating a seamless user experience with server-side rendering and client-side interactivity.
+En tant qu’ingénieur logiciel, j’ai développé cette application web full-stack afin d’approfondir ma compréhension des systèmes d’authentification modernes, de l’intégration d’API et de la gestion d’état avec Next.js. Le projet se concentre sur la mise en place d’une authentification sécurisée avec Firebase, l’intégration d’un backend FastAPI et la création d’une expérience utilisateur fluide combinant rendu côté serveur et interactivité côté client.
 
-SCI DIALALI is a real estate management platform that allows users to manage properties, users, and related data through a secure dashboard. The application features role-based access control, JWT authentication, and real-time data synchronization with a FastAPI backend.
+SCI DIALALI est une plateforme de gestion immobilière qui permet aux utilisateurs de gérer des biens, des utilisateurs et des données associées via un tableau de bord sécurisé. L’application propose un contrôle d’accès basé sur les rôles, une authentification JWT et une synchronisation des données en temps réel avec un backend FastAPI.
 
-### Getting Started
+### Démarrage
 
-**Prerequisites:**
+**Prérequis:**
 
 - Node.js 18+ and pnpm installed
-- Firebase project configured
 - FastAPI backend running (optional for full functionality)
 
-**Installation & Setup:**
+**Installation et configuration:**
 
-1. Clone the repository
+1. Cloner le dépôt
 
 ```bash
 git clone <your-repo-url>
 cd scidialali-web
 ```
 
-2. Install dependencies
+2. Installer les dépendances
 
 ```bash
 pnpm install
 ```
 
-3. Configure environment variables
+3. Configurer les variables d’environnement
    Create a `.env.local` file at the root:
 
 ```env
 # NextAuth
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your_generated_secret_here
-
-# Firebase Client
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-
 # API
-NEXT_PUBLIC_API_URL=http://localhost:8000
+API_BASE_URLL=http://localhost:8000
 ```
 
-4. Start the development server
+4. Lancer le serveur de développement
 
 ```bash
-pnpm dev
+pnpm run dev
 ```
 
-5. Open your browser and navigate to `http://localhost:3000`
+5. Ouvrir votre navigateur et accéder à `http://localhost:3000`
 
-### Purpose
+### Objectif
 
-This project was developed to:
+Ce projet a été développé afin de:
 
-- Master Next.js 14+ App Router architecture and server components
-- Implement secure authentication patterns with NextAuth.js and Firebase
-- Practice API integration between a Next.js frontend and FastAPI backend
-- Explore advanced TypeScript type systems and module augmentation
-- Build reusable components following modern React patterns
-- Understand JWT token management and session handling
-- Implement middleware-based route protection
+- Maîtriser l’architecture App Router de Next.js 14+ et les Server Components
+- Pratiquer l’intégration d’API entre un frontend Next.js et un backend FastAPI
+- Explorer des systèmes de typage TypeScript avancés et l’extension de modules
+- Construire des composants réutilisables selon les standards modernes de React
+- Comprendre la gestion des tokens JWT et des sessions
+- Implémenter la protection des routes via des middlewares
 
 [Software Demo Video](https://youtu.be/BmVMEuQ4QXg)
 
-## Web Pages
+## Pages Web
 
-### 1. Login Page (`/login`)
+### 1. Page de connexion (`/login`)
 
-The entry point of the application featuring a clean authentication form. Users enter their email and password credentials which are validated through Firebase Authentication. On successful login, users receive a JWT token and are redirected to the dashboard. The page includes:
+Point d’entrée de l’application avec un formulaire d’authentification épuré. Les utilisateurs saisissent leur adresse e-mail et leur mot de passe, validés via Firebase Authentication. Après une connexion réussie, un token JWT est attribué et l’utilisateur est redirigé vers le tableau de bord:
 
-- Real-time form validation
-- Error messaging for invalid credentials
-- Loading states during authentication
-- Automatic redirection for already-authenticated users
+- Validation du formulaire en temps réel
+- Messages d’erreur pour les identifiants invalides
+- États de chargement pendant l’authentification
+- Redirection automatique des utilisateurs déjà authentifiés
 
-### 2. Dashboard Home (`/dashboard`)
+### 2. Accueil du tableau de bord (`/{role}`)
 
-The main landing page after authentication, displaying an overview of the user's account and quick access to key features. This page dynamically loads:
+Page principale après authentification, offrant une vue d’ensemble du compte utilisateur et un accès rapide aux fonctionnalités clés:
 
-- User profile information from the session
-- Welcome message with personalized greeting
-- Navigation links to all major sections
-- Role-based content (admin users see additional options)
+- Informations du profil utilisateur depuis la session
+- Liens de navigation vers toutes les sections principales
+- Contenu conditionné par le rôle (les administrateurs voient plus d’options)
 
-### 3. Users Management (`/dashboard/users`)
+### 3. Gestion des utilisateurs (`/admin/users`)
 
-A comprehensive user management interface accessible to administrators. Features include:
+Interface complète de gestion des utilisateurs réservée aux administrateurs:
 
-- Dynamic table displaying all registered users
-- Real-time data fetching from the FastAPI backend
-- User role indicators (admin, user, etc.)
-- Delete functionality with confirmation dialogs
-- Edit user capabilities (future enhancement)
-- Server-side pagination for large datasets
+- Tableau dynamique affichant tous les utilisateurs enregistrés
+- Récupération des données en temps réel depuis le backend FastAPI
+- Indicateurs de rôles (admin, locataire et prospect)
+- Suppression avec boîtes de dialogue de confirmation
+- Pagination côté serveur pour les grands volumes de données
 
-### 4. Estates/Properties Management (`/dashboard/estates`)
+### 4. Gestion des biens / propriétés (`/admin/estates`)
 
-Property listing and management page where users can:
+Page de gestion immobilière permettant de :
 
-- View all properties in the database
-- Add new property listings
-- Edit existing property details
-- Delete properties with proper authorization
-- Filter and search through properties
-- View property details including images, descriptions, and pricing
+- Consulter tous les biens enregistrés
+- Ajouter de nouvelles propriétés
+- Modifier les informations existantes
+- Supprimer des biens avec autorisation appropriée
+- Filtrer et rechercher des propriétés
+- Visualiser les détails (images, descriptions, prix, etc.)
 
-### Navigation Flow
+### Flux de navigation
 
-The application uses Next.js App Router with client-side navigation for smooth transitions:
+L’application utilise l’App Router de Next.js avec une navigation côté client pour des transitions fluides:
 
-- Unauthenticated users accessing protected routes → Redirected to `/login`
-- Successful login → Redirected to `/dashboard` (or `callbackUrl` if specified)
-- Authenticated users accessing `/login` → Automatically redirected to `/dashboard`
-- Sidebar navigation provides instant transitions between dashboard sections
-- Logout action → Clears session and redirects to `/login`
+- Utilisateur non authentifié accédant à une route protégée → redirection vers `/login`
+- Connexion réussie → redirection vers `/{role}` (or `callbackUrl` si défini)
+- Utilisateur authentifié accédant à `/login` → edirection automatique vers `/{role}`
+- Navigation via la barre latérale pour un accès instantané aux sections
+- Déconnexion → suppression de la session et redirection vers `/login`
 
-All pages implement dynamic content loading using:
+Toutes les pages implémentent un chargement dynamique du contenu grâce à:
 
-- Server Components for initial data fetching (SEO-friendly)
-- Client Components for interactive elements (forms, buttons, modals)
-- Server Actions for data mutations (create, update, delete)
-- Optimistic UI updates for better user experience
+- Server Components pour le chargement initial des données (SEO friendly)
+- Client Components pour les éléments interactifs (formulaires, boutons, modales)
+- Server Actions pour les opérations CRUD
+- Mises à jour optimistes de l’UI pour une meilleure expérience utilisateur
 
-## Development Environment
+## Environnement de développement
 
-### Tools & Technologies
+### Outils et technologies
 
-**Frontend Framework:**
+**Framework Frontend:**
 
 - Next.js 16.0.3 (App Router)
 - React 19
 - TypeScript 5.x
 
-**Authentication & Authorization:**
+**Authentification et autorisation:**
 
 - NextAuth.js 4.x
-- Firebase Authentication 10.x
-- Firebase Admin SDK (for backend token verification)
 
-**Styling:**
+**Styles:**
 
 - Tailwind CSS 3.x
-- Heroicons for icons
-- Custom Tailwind configuration with theme extensions
+- Lucide React
+- Configuration Tailwind personnalisée avec extensions de thème
 
-**Development Tools:**
+**Outils de développement:**
 
-- pnpm (package manager)
-- ESLint (code linting)
+- pnpm (gestionnaire de paquets)
+- ESLint (analyse statique du code)
 - VS Code (IDE)
-- Git for version control
+- Git (gestion de versions)
 
-**Backend Integration:**
+**Intégration Backend:**
 
 - FastAPI (Python)
-- Firebase Admin SDK (Python)
 
-### Programming Languages & Libraries
+### Langages et bibliothèques
 
 **TypeScript/JavaScript:**
 
-- **Next.js** - React framework with server-side rendering and App Router
-- **NextAuth.js** - Authentication solution with JWT strategy
-- **Firebase** (`firebase@10.x`) - Client SDK for authentication
-- **React Hooks** - useState, useEffect, useSession for state management
-- **next/navigation** - useRouter, useSearchParams for routing
+- **Next.js** - Framework React avec rendu côté serveur et App Router
+- **NextAuth.js** - Solution d’authentification basée sur JWT
+- **React Hooks** - useState, useEffect, useSession pour la gestion d’état
+- **next/navigation** - useRouter, useSearchParams pour le routage
 
-**Key Libraries:**
+**Bibliothèques clés:**
 
-- `@heroicons/react` - Icon components
-- `tailwindcss` - Utility-first CSS framework
-- `typescript` - Type safety and developer experience
+- `@lucide-react` - Composants d’icônes
+- `tailwindcss` - Framework CSS utilitaire
+- `typescript` - Typage statique et productivité développeur
 
 **Python (Backend):**
 
-- `fastapi` - Modern API framework
-- `firebase-admin` - Server-side Firebase integration
-- `uvicorn` - ASGI server
+- `fastapi` - Framework API moderne
+- `uvicorn` - Serveur ASGI
 
 **Architecture Patterns:**
 
-- Server Components for data fetching
-- Client Components for interactivity
-- Server Actions for mutations
-- Middleware for route protection
-- Module augmentation for type extensions
-- Separation of concerns (lib/actions.ts, lib/auth.ts)
+- Server Components pour le chargement des données
+- Client Components pour l’interactivité
+- Server Actions pour les mutations
+- Middlewares pour la protection des routes
+- Séparation des responsabilités (lib/actions.ts, lib/auth.ts)
 
 ## Useful Websites
 
-- [Next.js Documentation](https://nextjs.org/docs) - Comprehensive guide for Next.js 14+ App Router
-- [NextAuth.js Documentation](https://next-auth.js.org/) - Authentication implementation patterns
-- [Firebase Authentication Docs](https://firebase.google.com/docs/auth) - Firebase Auth setup and usage
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs) - Styling utilities and components
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/) - TypeScript best practices
-- [FastAPI Documentation](https://fastapi.tiangolo.com/) - Backend API development
-- [React Documentation](https://react.dev/) - React 18+ features and hooks
-- [MDN Web Docs](https://developer.mozilla.org/) - Web standards and JavaScript references
-- [Stack Overflow](https://stackoverflow.com/) - Community support and troubleshooting
+- [Next.js Documentation](https://nextjs.org/docs) - Guide complet App Router 14+
+- [NextAuth.js Documentation](https://next-auth.js.org/) - Authentification
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs) - Styles et composants
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/) - Bonnes pratiques
+- [FastAPI Documentation](https://fastapi.tiangolo.com/) - Développement d’API
+- [React Documentation](https://react.dev/) - Hooks et fonctionnalités modernes
+- [MDN Web Docs](https://developer.mozilla.org/) - Standards du Web
+- [Stack Overflow](https://stackoverflow.com/) - Support communautaire
 
-## Future Work
+## Contact
 
-**Authentication & Security:**
-
-- Implement refresh token mechanism for automatic token renewal
-- Add OAuth providers (Google, GitHub) for social login
-- Implement two-factor authentication (2FA)
-- Add password reset functionality via email
-- Implement rate limiting to prevent brute-force attacks
-
-**User Management:**
-
-- Add user profile editing capabilities
-- Implement user avatar upload and management
-- Create role management system for granular permissions
-- Add user activity logs and audit trails
-- Implement user invitation system via email
-
-**Property/Estate Features:**
-
-- Add image upload functionality for properties
-- Implement advanced search and filtering (price range, location, type)
-- Create property detail pages with galleries
-- Add favorites/bookmarks functionality
-- Implement property comparison feature
-- Add map integration for property locations
-
-**UI/UX Improvements:**
-
-- Implement dark mode toggle
-- Add loading skeletons for better perceived performance
-- Create responsive mobile navigation
-- Add toast notifications for user actions
-- Implement drag-and-drop for file uploads
-- Add data export functionality (CSV, PDF)
-
-**Performance & Optimization:**
-
-- Implement image optimization with Next.js Image component
-- Add caching strategies for API responses
-- Implement infinite scroll for large datasets
-- Add service worker for offline capabilities
-- Optimize bundle size with code splitting
-
-**Testing & Quality:**
-
-- Add unit tests with Jest and React Testing Library
-- Implement E2E tests with Playwright
-- Add API integration tests
-- Set up CI/CD pipeline with GitHub Actions
-- Implement error tracking with Sentry
-
-**Backend Integration:**
-
-- Add real-time updates with WebSockets
-- Implement file storage with Firebase Storage
-- Add email notifications for important events
-- Create comprehensive API documentation
-- Implement data backup and recovery system
+**Email:** alexandrepaulkouame@gmail.com  
+**Mobile:**  +225 01 41 42 96 28

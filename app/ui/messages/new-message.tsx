@@ -31,7 +31,7 @@ export function NewMessage({
     if (showRecipientSelect && !defaultRecipientId) {
       loadUsers();
     }
-  }, []);
+  }, [showRecipientSelect, defaultRecipientId]);
 
   const loadUsers = async () => {
     try {

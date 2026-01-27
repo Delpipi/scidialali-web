@@ -8,8 +8,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { useSession } from "next-auth/react";
-import { HandshakeIcon, MailIcon, UserIcon } from "lucide-react";
+import { Calendar, HandshakeIcon, MailIcon, UserIcon } from "lucide-react";
 
 // Map of links to display in the side navigation.
 // Depending on the size of the application, this would be stored in a database.
@@ -29,6 +28,11 @@ const menuAdmin = [
     name: "Messages",
     href: "/admin/messages",
     icon: MailIcon,
+  },
+  {
+    name: "Paiements",
+    href: "/admin/payments",
+    icon: Calendar,
   },
   {
     name: "Biens Immobiliers",
@@ -67,6 +71,11 @@ const menuLocataire = [
     name: "Mes Messages",
     href: "/locataire/messages",
     icon: MailIcon,
+  },
+  {
+    name: "Mes Echéances",
+    href: "/locataire/payments",
+    icon: Calendar,
   },
   {
     name: "Profile",

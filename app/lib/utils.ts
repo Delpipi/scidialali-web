@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { PaymentStatus } from "./definitions";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -63,7 +64,7 @@ export const generatePagination = (currentPage: number, totalPages: number) => {
 
 // Fonction simple pour formater la date
 export function formatRelativeDate(
-  date: string | Date | null | undefined
+  date: string | Date | null | undefined,
 ): string | null {
   if (!date) return null;
 
@@ -97,3 +98,14 @@ export function formatCurrency(amount: number): string {
     minimumFractionDigits: 0,
   }).format(amount);
 }
+
+export const getStatusColor = (status: PaymentStatus) => {
+  switch (status) {
+    case PaymentStatus.paid:
+      return "bg-green-100 text-green-800 border-green-300";
+    case PaymentStatus.late:
+      return "bg-red-100 text-red-800 border-red-300";
+    default:
+      return "bg-yellow-100 text-yellow-800 border-yellow-300";
+  }
+};

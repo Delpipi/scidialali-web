@@ -87,6 +87,7 @@ export interface PublicEstate extends CreateEstate {
   id: string;
   id_gestionnaire: string | null;
   id_locataire: string | null;
+  locataire: PublicUser | null;
   created_at: Date;
   updated_at: Date | null;
 }
@@ -177,7 +178,7 @@ export interface PublicMessage {
   parent_id?: string;
   sender?: PublicUser;
   recipient?: PublicUser;
-  attachments: string[]; // ✅ CORRECTION: "attachments" pas "documents"
+  attachments: string[];
   created_at: string;
 }
 
@@ -193,3 +194,25 @@ export type MessageRepliesResponse = {
   items: PublicMessage[];
   total_count: number;
 };
+
+/********************************
+ *********** PAYMENT ************
+ ********************************/
+export enum PaymentStatus {
+  pending = 0,
+  paid = 1,
+  late = 2,
+}
+
+export interface PublicPayment {
+  id: string;
+  locataire_id: string;
+  estate_id: string;
+  estate: { titre: string; adresse: string };
+  locataire: string;
+  loyer_mensuel: number;
+  due_date: string;
+  paid_date?: string;
+  status: PaymentStatus;
+  created_at: string;
+}

@@ -20,7 +20,7 @@ export default async function SideNav() {
         />
         <h1 className="text-2xl uppercase md:hidden">SCI DIALALI</h1>
       </div>
-      <div className="flex grow flex-row justify-between space-x-2 md:flex-col md:space-x-0 md:space-y-2">
+      <div className="flex grow flex-row flex-wrap gap-xsmall justify-between md:flex-col md:space-x-0 md:space-y-2">
         <NavLinks user={session?.user} />
         <div className="hidden h-auto w-full grow rounded-md bg-gray-50 md:block"></div>
         <form

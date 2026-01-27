@@ -24,6 +24,7 @@ import {
   ProspectStats,
   PublicEstate,
   PublicMessage,
+  PublicPayment,
   PublicRentalRequest,
   PublicUser,
   UploadResponse,
@@ -141,6 +142,9 @@ export async function apiRequest<T>(
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      redirect("/login?error=SessionExpired");
+    }
     const errorData = await response.json();
     console.error(errorData.detail);
     throw new ApiError(response.status, errorData.detail);
@@ -189,6 +193,13 @@ export async function getAdminStats() {
 
 export async function getProspectStats() {
   const result = await apiRequest<ProspectStats>("/api/stats/prospect", {
+    method: "GET",
+  });
+  return result;
+}
+
+export async function getLocataireStats() {
+  const result = await apiRequest<ProspectStats>("/api/stats/locataire", {
     method: "GET",
   });
   return result;
@@ -334,6 +345,26 @@ export async function register(
  ***********************************************/
 
 //============== GET ALL ESTATE ================
+export async function getAllRentedEstates() {
+  try {
+    const result = await apiRequest<PublicEstate[]>(`/api/estates/rented`);
+
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    console.error("ERREUR GET ALL RENTED ESTATES", error);
+    const apiError = error as ApiError;
+    console.error(apiError.detail);
+    return {
+      status: "error",
+      message: apiError.detail || "Une erreur est survenue.",
+      httpStatus: apiError.status,
+    };
+  }
+}
+
 export async function getAllAvailableEstates({
   type,
   order_by,
@@ -379,7 +410,7 @@ export async function getAllEstates({
 }) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    const url = `/api/estates?type=${type}&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}&status=${
+    const url = `/api/estates?type=${type || ""}&limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}&status=${
       status || ""
     }`;
 
@@ -549,11 +580,7 @@ export async function getAllUsers({
   currentPage: number;
 }) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-
-  let url = `/api/users?limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}`;
-  if (role !== undefined) {
-    url += `&role=${role}`;
-  }
+  const url = `/api/users?limit=${ITEMS_PER_PAGE}&offset=${offset}&order_by=${order_by}&role=${role || ""}`;
   const response = await apiRequest<PaginatedData>(url);
   return {
     status: "success",
@@ -1138,6 +1165,170 @@ export async function markMessageAsRead(id: string) {
       status: "error",
       message: apiError.detail || "Une erreur est survenue.",
       httpStatus: apiError.status,
+    };
+  }
+}
+
+/**************************************
+ ************* PAYMENYT ***************
+ **************************************/
+//= GET ALL
+async function get_all_messages({
+  status,
+  locataireId,
+  estateId,
+  orderBy,
+  currentPage = 1,
+}: {
+  status?: string;
+  locataireId?: number;
+  estateId?: number;
+  orderBy?: string;
+  currentPage: number;
+}) {
+  try {
+    const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+    const result = await apiRequest<PublicPayment[]>(
+      `/api/payments/?status=${status || ""}
+      &locataire_id=${locataireId || ""}
+      &estate_id=${estateId || ""}
+      &order_by=${orderBy || ""}&limit=${ITEMS_PER_PAGE}&offset=${offset}`,
+    );
+    return {
+      status: "success",
+      response: result,
+    };
+  } catch (error) {
+    const apiError = error as ApiError;
+    return {
+      status: "error",
+      message: apiError.detail,
+    };
+  }
+}
+
+//= GET CALENDAR
+export async function getPaymentCalendar({
+  year,
+  month,
+}: {
+  year?: number;
+  month?: number;
+}) {
+  try {
+    const result = await apiRequest<PublicPayment[]>(
+      `/api/payments/calendar?year=${year || ""}&month=${month || ""}`,
+    );
+    return {
+      status: "success",
+      response: result,
+    };
+  } catch (error) {
+    const apiError = error as ApiError;
+    return {
+      status: "error",
+      message: apiError.detail,
+    };
+  }
+}
+
+//= GET UPCOMING
+async function get_upcoming_payments({ days }: { days?: number }) {
+  try {
+    const result = await apiRequest<PublicPayment[]>(
+      `/api/payments/upcoming?days=${days || ""}`,
+    );
+    return {
+      status: "success",
+      response: result,
+    };
+  } catch (error) {
+    const apiError = error as ApiError;
+    return {
+      status: "error",
+      message: apiError.detail,
+    };
+  }
+}
+
+//= GET DUE TO DAY
+export async function getPaymentDueToDay({ days }: { days?: number }) {
+  try {
+    const result = await apiRequest<PublicPayment[]>(
+      `/api/payments/due-to-day`,
+    );
+    return {
+      status: "success",
+      response: result,
+    };
+  } catch (error) {
+    const apiError = error as ApiError;
+    return {
+      status: "error",
+      message: apiError.detail,
+    };
+  }
+}
+
+//= CREATE PAYMENT
+export async function createPayment({ payment }: { payment: any }) {
+  try {
+    const result = await apiRequest(`/api/payments`, {
+      method: "POST",
+      body: JSON.stringify(payment),
+    });
+
+    revalidatePath("/admin/calendar");
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    const apiError = error as ApiError;
+    return {
+      status: "error",
+      message:
+        apiError.detail || "Une erreur est survenue lors de la création.",
+    };
+  }
+}
+//= MARK PAYMENT AS PAID
+export async function markPaymentAsPaid({ id }: { id: string }) {
+  try {
+    const response = await apiRequest(`/api/payments/${id}/mark_as_paid`, {
+      method: "PATCH",
+    });
+    revalidatePath("/admin/calendar");
+    return {
+      status: "success",
+      data: response,
+    };
+  } catch (error) {
+    const apiError = error as ApiError;
+    return {
+      status: "error",
+      message: apiError.detail,
+    };
+  }
+}
+
+//= MARK PAYMENT AS LATE
+export async function markPaymentAsLate({ id }: { id: string }) {
+  try {
+    const response = await apiRequest(`/api/payments/${id}/mark_as_late`, {
+      method: "PATCH",
+    });
+    revalidatePath("/admin/calendar");
+    revalidatePath("/admin/calendar");
+    return {
+      status: "success",
+      data: response,
+    };
+  } catch (error) {
+    const apiError = error as ApiError;
+    return {
+      status: "error",
+      message: apiError.detail,
     };
   }
 }

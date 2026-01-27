@@ -1,18 +1,19 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import {
   Reply,
   Download,
   X,
-  User,
   Paperclip,
   AlertCircle,
   CreditCard,
   FileText,
   MessageSquare,
+  ChevronLeft,
 } from "lucide-react";
 import { PublicMessage } from "@/app/lib/definitions";
 import { replyToMessage, getMessageReplies } from "@/app/lib/actions";
-import { LinkButton } from "../button";
 
 interface MessageDetailProps {
   message: PublicMessage;
@@ -53,25 +54,22 @@ export function MessageDetail({
   const [replyFiles, setReplyFiles] = useState<File[]>([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
-
-  // ✅ NOUVEAU: État pour les réponses
   const [replies, setReplies] = useState<PublicMessage[]>([]);
   const [loadingReplies, setLoadingReplies] = useState(false);
 
-  const typeConfig = MESSAGE_TYPE_CONFIG[message.type];
+  const typeConfig =
+    MESSAGE_TYPE_CONFIG[message.type as keyof typeof MESSAGE_TYPE_CONFIG] ||
+    MESSAGE_TYPE_CONFIG.general;
   const Icon = typeConfig.icon;
 
-  // ✅ NOUVEAU: Charger les réponses au montage du composant
   useEffect(() => {
-    if (message.parent_id) {
-      loadReplies(message.parent_id);
-    }
-  }, [message.parent_id]);
+    if (message.id) loadReplies(message.id);
+  }, [message.id]);
 
-  const loadReplies = async (parent_id: string) => {
+  const loadReplies = async (id: string) => {
     setLoadingReplies(true);
     try {
-      const result = await getMessageReplies(parent_id);
+      const result = await getMessageReplies(id);
       if (result.status === "success" && result.data) {
         setReplies(result.data.items);
       }
@@ -83,43 +81,29 @@ export function MessageDetail({
   };
 
   const handleReply = async () => {
-    if (!replyContent.trim()) {
-      setError("Le message ne peut pas être vide");
+    if (
+      !replyContent.trim() ||
+      replyContent.length < 10 ||
+      replyContent.length > 1000
+    ) {
+      setError("Le message doit faire entre 10 et 1000 caractères");
       return;
     }
-
-    if (replyContent.length < 10) {
-      setError("Le message doit contenir au moins 10 caractères");
-      return;
-    }
-
-    if (replyContent.length > 1000) {
-      setError("Le message doit contenir au plus 1000 caractères");
-      return;
-    }
-
     try {
       setSending(true);
       setError("");
       const result = await replyToMessage(message.id, replyContent, replyFiles);
-
       if (result.status === "success") {
         setReplyContent("");
         setReplyFiles([]);
         setShowReply(false);
-
-        // ✅ Recharger les réponses après avoir envoyé
-        if (message.parent_id) {
-          await loadReplies(message.parent_id);
-        }
-
+        await loadReplies(message.id);
         onReplySuccess();
-        alert("Réponse envoyée avec succès");
       } else {
         setError(result.message || "Erreur lors de l'envoi");
       }
-    } catch (error: any) {
-      setError(error.message || "Erreur lors de l'envoi de la réponse");
+    } catch (error) {
+      setError(`Erreur lors de l'envoi de la réponse, ${error}`);
     } finally {
       setSending(false);
     }
@@ -128,13 +112,10 @@ export function MessageDetail({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
-
-      const oversized = files.filter((f) => f.size > 10 * 1024 * 1024);
-      if (oversized.length > 0) {
+      if (files.some((f) => f.size > 10 * 1024 * 1024)) {
         setError("Certains fichiers dépassent 10 MB");
         return;
       }
-
       setReplyFiles(files);
       setError("");
     }
@@ -146,199 +127,120 @@ export function MessageDetail({
 
   return (
     <div className="h-full flex flex-col bg-white">
-      {/* Header */}
-      <div className="border-b p-4 bg-gray-50">
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex items-center gap-2">
+      {/* Header optimisé Mobile */}
+      <div className="border-b p-3 md:p-4 bg-gray-50 flex items-center gap-3">
+        <button
+          onClick={onClose}
+          className="md:hidden p-1 hover:bg-gray-200 rounded-full transition"
+        >
+          <ChevronLeft className="w-6 h-6 text-gray-600" />
+        </button>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
             <span
-              className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-sm font-medium ${typeConfig.color}`}
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] md:text-xs font-bold uppercase tracking-wide ${typeConfig.color}`}
             >
               <Icon className="w-4 h-4" />
               {typeConfig.label}
             </span>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-200 rounded-md transition"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <h2 className="text-sm md:text-xl font-bold text-gray-900 truncate">
+            {message.subject}
+          </h2>
         </div>
 
-        <h2 className="text-xl font-semibold text-gray-900">
-          {message.subject}
-        </h2>
-
-        {message.sender && (
-          <div className="flex items-center gap-2 mt-3 text-sm text-gray-600">
-            <User className="w-4 h-4" />
-            <span className="font-medium">
-              {message.sender.nom} {message.sender.prenom}
-            </span>
-            <span className="text-gray-400">•</span>
-            <span>{message.sender.email}</span>
-          </div>
-        )}
-
-        <p className="text-sm text-gray-500 mt-2">
-          {new Date(message.created_at).toLocaleString("fr-FR", {
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </p>
+        <button
+          onClick={onClose}
+          className="hidden md:block p-2 hover:bg-gray-200 rounded-full transition"
+        >
+          <X className="w-5 h-5 text-gray-400" />
+        </button>
       </div>
 
-      {/* Content avec scroll */}
-      <div className="flex-1 overflow-y-auto">
-        {/* Message principal */}
-        <div className="p-6 border-b bg-white">
-          <div className="prose max-w-none">
-            <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-              {message.content}
-            </p>
+      {/* Zone de contenu scrollable */}
+      <div className="flex-1 overflow-y-auto bg-gray-50/30">
+        {/* Message Principal */}
+        <div className="p-4 md:p-6 border-b bg-white">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-sm">
+              {message.sender?.prenom?.[0].toUpperCase()}
+            </div>
+            <div className="text-xs">
+              <p className="font-bold text-gray-900">
+                {message.sender?.nom} {message.sender?.prenom}
+              </p>
+              <p className="text-gray-500">
+                {new Date(message.created_at).toLocaleDateString()}
+              </p>
+            </div>
           </div>
+          <p className="text-sm md:text-base text-gray-700 whitespace-pre-wrap leading-relaxed mb-6">
+            {message.content}
+          </p>
 
-          {/* attachments au lieu de documents */}
           {message.attachments?.length > 0 && (
-            <div className="mt-6 border-t pt-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                <Paperclip className="w-4 h-4" />
-                Pièces jointes ({message.attachments.length})
-              </h3>
-              <div className="space-y-2">
-                {message.attachments.map((url, index) => {
-                  const filename =
-                    url.split("/").pop() || `document-${index + 1}`;
-                  const extension =
-                    filename.split(".").pop()?.toUpperCase() || "FILE";
-
-                  return (
-                    <a
-                      key={index}
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 border rounded-md hover:bg-gray-50 transition group"
-                    >
-                      <div className="shrink-0 w-10 h-10 bg-blue-100 rounded-md flex items-center justify-center">
-                        <span className="text-xs font-bold text-primary">
-                          {extension}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {filename}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Cliquer pour télécharger
-                        </p>
-                      </div>
-                      <Download className="w-5 h-5 text-gray-400 group-hover:text-primary shrink-0" />
-                    </a>
-                  );
-                })}
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+              {message.attachments.map((url, index) => (
+                <a
+                  key={index}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-2 border rounded-lg bg-gray-50 hover:bg-gray-100 transition group"
+                >
+                  <div className="shrink-0 w-8 h-8 bg-white border rounded flex items-center justify-center text-[10px] font-bold text-primary">
+                    DOC
+                  </div>
+                  <span className="flex-1 text-xs font-medium truncate text-gray-700">
+                    {url.split("/").pop()}
+                  </span>
+                  <Download className="w-4 h-4 text-gray-400 group-hover:text-primary" />
+                </a>
+              ))}
             </div>
           )}
         </div>
 
-        {/* ✅ NOUVEAU: Section des réponses */}
-        {loadingReplies ? (
-          <div className="p-6 text-center text-gray-500">
-            <p>Chargement des réponses...</p>
-          </div>
-        ) : replies.length > 0 ? (
-          <div className="bg-gray-50">
-            <div className="p-4 border-b bg-gray-100">
-              <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <Reply className="w-4 h-4" />
-                {replies.length} réponse{replies.length > 1 ? "s" : ""}
-              </h3>
+        {/* Section Réponses */}
+        <div className="p-4 space-y-4">
+          {loadingReplies ? (
+            <div className="text-center py-4 text-xs text-gray-400 animate-pulse">
+              Chargement des échanges...
             </div>
-
-            {replies.map((reply, index) => (
-              <div
-                key={reply.id}
-                className={`p-6 border-b ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
-              >
-                {/* Info expéditeur */}
-                {reply.sender && (
-                  <div className="flex items-center gap-2 mb-3 text-sm">
-                    <div className="w-10 h-10 rounded-md-full flex items-center justify-center text-white font-semibold text-sm shadow-md bg-primary">
-                      {reply.sender.prenom?.[0]?.toUpperCase() || "?"}
-                      {reply.sender.nom?.[0]?.toUpperCase() || "?"}
-                    </div>
-
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {reply.sender.nom} {reply.sender.prenom}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(reply.created_at).toLocaleString("fr-FR", {
-                          day: "2-digit",
-                          month: "short",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Contenu de la réponse */}
-                <div className="ml-10">
-                  <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+          ) : (
+            replies.map((reply) => (
+              <div key={reply.id} className="flex flex-col space-y-1">
+                <div className="flex items-center gap-2 px-1">
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">
+                    {reply.sender?.prenom} {reply.sender?.nom}
+                  </span>
+                </div>
+                <div className="bg-white p-3 rounded-xl rounded-tl-none border border-gray-200  max-w-[90%]">
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">
                     {reply.content}
                   </p>
-
-                  {/* Pièces jointes de la réponse */}
-                  {reply.attachments?.length > 0 && (
-                    <div className="mt-3 space-y-2">
-                      {reply.attachments.map((url, idx) => {
-                        const filename = url.split("/").pop() || `file-${idx}`;
-                        return (
-                          <a
-                            key={idx}
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-md text-sm transition"
-                          >
-                            <Paperclip className="w-3 h-3" />
-                            <span className="truncate max-w-xs">
-                              {filename}
-                            </span>
-                            <Download className="w-3 h-3" />
-                          </a>
-                        );
-                      })}
-                    </div>
-                  )}
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-6 text-center text-gray-400 text-sm bg-gray-50">
-            Aucune réponse pour le moment
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </div>
 
-      {/* Reply Section */}
-      <div className="border-t p-4 bg-white">
+      {/* Zone de réponse compacte */}
+      <div className="p-3 md:p-4 border-t bg-white sticky bottom-0">
         {!showReply ? (
-          <LinkButton onClick={() => setShowReply(true)}>
-            <Reply className="w-4 h-4" />
+          <button
+            onClick={() => setShowReply(true)}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all"
+          >
+            <Reply className="w-5 h-5" />
             Répondre
-          </LinkButton>
+          </button>
         ) : (
           <div className="space-y-3">
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+              <div className="p-2 bg-red-50 text-red-600 text-[10px] rounded-lg font-medium border border-red-100">
                 {error}
               </div>
             )}
@@ -349,67 +251,53 @@ export function MessageDetail({
                 setReplyContent(e.target.value);
                 setError("");
               }}
-              placeholder="Votre réponse (10-1000 caractères)..."
-              className="px-xsmall py-xsmall bg-gray-100 outline-2 outline-gray-600 rounded-sm w-full placeholder-gray-500"
-              rows={5}
+              placeholder="Écrivez votre réponse ici..."
+              className="w-full p-3 bg-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 border-transparent resize-none"
+              rows={4}
             />
 
-            <div className="text-xs text-gray-500">
-              {replyContent.length} / 1000 caractères
-            </div>
-
-            {/* File Upload */}
-            <div>
-              <input
-                type="file"
-                multiple
-                accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
-                onChange={handleFileChange}
-                className="hidden"
-                id="reply-files"
-              />
+            <div className="flex items-center justify-between">
               <label
-                htmlFor="reply-files"
-                className="inline-flex items-center gap-2 px-3 py-2 border rounded-md cursor-pointer hover:bg-gray-50 transition"
+                htmlFor="mobile-reply-files"
+                className="flex items-center gap-2 p-2 text-primary font-bold text-xs cursor-pointer"
               >
                 <Paperclip className="w-4 h-4" />
-                Joindre des fichiers
+                Joindre
+                <input
+                  type="file"
+                  id="mobile-reply-files"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
               </label>
-              <p className="text-xs text-gray-500 mt-1">
-                Maximum 10 MB par fichier. Formats: JPG, PNG, PDF, DOC, DOCX
-              </p>
-
-              {replyFiles.length > 0 && (
-                <div className="mt-3 space-y-2">
-                  {replyFiles.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 p-2 bg-gray-50 border rounded-md"
-                    >
-                      <Paperclip className="w-4 h-4 text-gray-400 shrink-0" />
-                      <span className="flex-1 text-sm truncate">
-                        {file.name}
-                      </span>
-                      <span className="text-xs text-gray-500 shrink-0">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </span>
-                      <button
-                        onClick={() => removeFile(index)}
-                        className="text-red-600 hover:text-red-700 shrink-0"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <span className="text-[10px] text-gray-400">
+                {replyContent.length}/1000
+              </span>
             </div>
+
+            {replyFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {replyFiles.map((file, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-1 bg-gray-50 border px-2 py-1 rounded-md text-[10px]"
+                  >
+                    <span className="truncate max-w-20">{file.name}</span>
+                    <X
+                      className="w-3 h-3 text-red-500"
+                      onClick={() => removeFile(i)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="flex gap-2">
               <button
                 onClick={handleReply}
                 disabled={sending || !replyContent.trim()}
-                className="px-4 py-2 rounded-md bg-primary text-white"
+                className="flex-1 py-3 bg-primary text-white rounded-xl font-bold disabled:opacity-50"
               >
                 {sending ? "Envoi..." : "Envoyer"}
               </button>
@@ -418,9 +306,8 @@ export function MessageDetail({
                   setShowReply(false);
                   setReplyContent("");
                   setReplyFiles([]);
-                  setError("");
                 }}
-                className="px-4 py-2 border rounded-md hover:bg-gray-50 transition"
+                className="px-4 py-3 border rounded-xl font-bold text-gray-500"
               >
                 Annuler
               </button>

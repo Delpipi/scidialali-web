@@ -1,5 +1,6 @@
 import {
   getCurrentUserRentalRequests,
+  getLocataireStats,
   getProspectStats,
 } from "@/app/lib/actions";
 import CardWrapper from "@/app/ui/dashboard/prospect/card-wrapper";
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
 
 export default async function Page() {
   const [stats, result] = await Promise.all([
-    getProspectStats(),
+    getLocataireStats(),
     getCurrentUserRentalRequests({ order_by: "created_at" }),
   ]);
 
