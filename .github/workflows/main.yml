@@ -113,8 +113,8 @@ jobs:
             cd /root/projects/scidialali-web
             cat > .env << EOF
             AUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
-            AUTH_URL=https://api.plbsolutions.net
-            NEXTAUTH_URL=https://api.plbsolutions.net
+            AUTH_URL=https://scidialali.com
+            NEXTAUTH_URL=https://scidialali.com
             AUTH_TRUST_HOST=true
             API_BASE_URL=${{ secrets.API_BASE_URL }}
             NEXT_PUBLIC_API_BASE_URL=${{ secrets.API_BASE_URL }}
